@@ -1,0 +1,447 @@
+{
+ "source": "LUDUS_WORKSPACE.xlsx — onglets V4.x.10 (Gladiateurs, Tactiques, Edits) + feuilles maîtres",
+ "gladiators": [
+  {
+   "name": "PROVOCATOR",
+   "rank": "Départ",
+   "cost": 1,
+   "power": 0,
+   "avantage": false,
+   "wording": "Combat : +X [] X étant le numéro du tour en cours.",
+   "copies": 6,
+   "advanced": false
+  },
+  {
+   "name": "THRAEX",
+   "rank": "Débutant",
+   "cost": 1,
+   "power": 2,
+   "avantage": false,
+   "wording": "\"Infirmus !\"",
+   "copies": 3,
+   "advanced": false
+  },
+  {
+   "name": "GALLUS",
+   "rank": "Débutant",
+   "cost": 1,
+   "power": 1,
+   "avantage": false,
+   "wording": "Combat : +3 [] si ce gladiateur se trouve sur la zone de duel centrale.",
+   "copies": 3,
+   "advanced": false
+  },
+  {
+   "name": "HOPLOMAQUE",
+   "rank": "Débutant",
+   "cost": 1,
+   "power": 1,
+   "avantage": false,
+   "wording": "Combat : Si vous avez X HOPLOMAQUE en combat : 2 : +2 [] 3 : +3 []",
+   "copies": 6,
+   "advanced": false
+  },
+  {
+   "name": "CAESARIANUS",
+   "rank": "Débutant",
+   "cost": 1,
+   "power": 1,
+   "avantage": false,
+   "wording": "Révélation : +2 []",
+   "copies": 3,
+   "advanced": false
+  },
+  {
+   "name": "MUNIFEX",
+   "rank": "Débutant",
+   "cost": 1,
+   "power": 0,
+   "avantage": false,
+   "wording": "Mort : Récuperez toutes vos tactiques placées dans le Colisée ce tour-ci.",
+   "copies": 3,
+   "advanced": true
+  },
+  {
+   "name": "SAMNITE",
+   "rank": "Débutant",
+   "cost": 1,
+   "power": 3,
+   "avantage": false,
+   "wording": "Combat : -3 [] s'il y a un gladiateur de Départ en combat.",
+   "copies": 3,
+   "advanced": false
+  },
+  {
+   "name": "GLADIATRIX",
+   "rank": "Débutant",
+   "cost": 1,
+   "power": 1,
+   "avantage": true,
+   "wording": "Combat : +3 [] si ce gladiateur a remporté le duel.",
+   "copies": 3,
+   "advanced": true
+  },
+  {
+   "name": "MURMILLO",
+   "rank": "Aguerri",
+   "cost": 3,
+   "power": 3,
+   "avantage": false,
+   "wording": "\"Audaces fortuna iuvat!\"",
+   "copies": 3,
+   "advanced": false
+  },
+  {
+   "name": "VENEFICUS",
+   "rank": "Aguerri",
+   "cost": 3,
+   "power": 0,
+   "avantage": false,
+   "wording": "Combat : Si ce gladiateur est en train de perdre le duel, une égalité est provoquée.",
+   "copies": 3,
+   "advanced": false
+  },
+  {
+   "name": "LAQUEARIUS",
+   "rank": "Aguerri",
+   "cost": 3,
+   "power": 2,
+   "avantage": false,
+   "wording": "Combat : Si ce gladiateur a remporté le duel, recrutez le gladiateur adverse.",
+   "copies": 3,
+   "advanced": true
+  },
+  {
+   "name": "ANDABATA",
+   "rank": "Aguerri",
+   "cost": 3,
+   "power": 4,
+   "avantage": false,
+   "wording": "Combat : -1 [] à vos gladiateurs en combat dans les zones de duel adjacentes.",
+   "copies": 3,
+   "advanced": false
+  },
+  {
+   "name": "RETIARIUS",
+   "rank": "Aguerri",
+   "cost": 3,
+   "power": 2,
+   "avantage": false,
+   "wording": "Combat : '+2 [] si contre les gladiateurs Débutants et Aguerris.",
+   "copies": 3,
+   "advanced": false
+  },
+  {
+   "name": "PEGMA",
+   "rank": "Aguerri",
+   "cost": 3,
+   "power": 0,
+   "avantage": false,
+   "wording": "Révélation : Choisissez jusqu'à 5 gladiateurs Débutants et/ou Aguerris de votre ludus. Placez-les en renfort de ce gladiateur.",
+   "copies": 3,
+   "advanced": true
+  },
+  {
+   "name": "NOBILE",
+   "rank": "Aguerri",
+   "cost": 3,
+   "power": 0,
+   "avantage": false,
+   "wording": "Mort : +6 []",
+   "copies": 3,
+   "advanced": false
+  },
+  {
+   "name": "ESSEDARIUS",
+   "rank": "Légendaire",
+   "cost": 5,
+   "power": 2,
+   "avantage": true,
+   "wording": "Combat : +1 [] à vos gladiateurs en combat dans les zones de duel adjacentes.",
+   "copies": 3,
+   "advanced": false
+  },
+  {
+   "name": "SECUTOR",
+   "rank": "Légendaire",
+   "cost": 5,
+   "power": 4,
+   "avantage": false,
+   "wording": "\"Pugna non perfecta est !\"",
+   "copies": 3,
+   "advanced": false
+  },
+  {
+   "name": "DIMACHERUS",
+   "rank": "Légendaire",
+   "cost": 5,
+   "power": 3,
+   "avantage": false,
+   "wording": "Combat : Les bonus et malus de puissance [] appliqués à ce gladiateur comptent double.",
+   "copies": 3,
+   "advanced": true
+  },
+  {
+   "name": "SAGITTARIUS",
+   "rank": "Légendaire",
+   "cost": 5,
+   "power": 2,
+   "avantage": false,
+   "wording": "Révélation : Choisissez un gladiateur de votre ludus. Placez-le en renfort de ce gladiateur.",
+   "copies": 3,
+   "advanced": true
+  },
+  {
+   "name": "EQUES",
+   "rank": "Légendaire",
+   "cost": 5,
+   "power": 2,
+   "avantage": false,
+   "wording": "Combat : +2 par gladiateur légendaire adverse en combat.",
+   "copies": 3,
+   "advanced": false
+  },
+  {
+   "name": "SCISSOR",
+   "rank": "Légendaire",
+   "cost": 5,
+   "power": 2,
+   "avantage": true,
+   "wording": "Continu : Les effets du gladiateur adverse ne peuvent pas s'appliquer.",
+   "copies": 3,
+   "advanced": false
+  },
+  {
+   "name": "CRUPELLARIUS",
+   "rank": "Légendaire",
+   "cost": 5,
+   "power": 5,
+   "avantage": true,
+   "wording": "Combat : -1 par tactique adverse en combat.",
+   "copies": 3,
+   "advanced": false
+  }
+ ],
+ "tactics": [
+  {
+   "name": "Dispense",
+   "cost": 1,
+   "wording": "Révélation : Remplacez votre gladiateur par le gladiateur du dessus de votre Ludus. Mettez le gladiateur dispensé en dessous de votre Ludus.",
+   "copies": 5,
+   "advanced": false
+  },
+  {
+   "name": "Pugio",
+   "cost": 2,
+   "wording": "Combat : +1 [] à votre gladiateur.",
+   "copies": 5,
+   "advanced": false
+  },
+  {
+   "name": "À la fosse !",
+   "cost": 1,
+   "wording": "Préparation : Choisissez un des gladiateurs de votre ludus. Défaussez-le.",
+   "copies": 5,
+   "advanced": false
+  },
+  {
+   "name": "Convoi",
+   "cost": 1,
+   "wording": "Préparation : Choisissez un Quartier. Envoyez au dépôt les cartes présentes sur ses emplacements achats. Ravitaillez-le.",
+   "copies": 5,
+   "advanced": false
+  },
+  {
+   "name": "Repositionnement",
+   "cost": 2,
+   "wording": "Révélation : Choisissez une zone de duel (celle-ci y compris). Échangez vos cartes de la zone de duel choisie (gladiateur et tactique) avec vos cartes de cette zone de duel.",
+   "copies": 5,
+   "advanced": false
+  },
+  {
+   "name": "Missio",
+   "cost": 1,
+   "wording": "Révélation : Désignez un emplacement gladiateur de cette zone de duel. Continu : Aucun gladiateur ne peut mourir sur l’emplacement désigné.",
+   "copies": 4,
+   "advanced": false
+  },
+  {
+   "name": "Datura",
+   "cost": 3,
+   "wording": "Révélation : Réappliquez les effets [Révélation] de votre gladiateur. Continu : Quand vous appliquez ses effets [Combat] ou [Mort], appliquez-les une seconde fois.",
+   "copies": 4,
+   "advanced": false
+  },
+  {
+   "name": "Réservation",
+   "cost": 4,
+   "wording": "Préparation : Désignez un laniste. Choisissez un des gladiateurs de son ludus. Placez-le face cachée dans un emplacement gladiateur vide de son côté du Colisée.",
+   "copies": 3,
+   "advanced": true
+  },
+  {
+   "name": "Lion apprivoisé",
+   "cost": 5,
+   "wording": "Combat : +2 [] à votre gladiateur.",
+   "copies": 3,
+   "advanced": false
+  },
+  {
+   "name": "Summa Rudis",
+   "cost": 2,
+   "wording": "Continu : Aucun effet Révélation ou Continu de tactique ne peut cibler les gladiateurs et tactiques de cette zone de duel.",
+   "copies": 3,
+   "advanced": false
+  },
+  {
+   "name": "Clef de la fosse",
+   "cost": 4,
+   "wording": "Préparation : Choisissez une tactique de la fosse. Ajoutez-la à votre main.",
+   "copies": 1,
+   "advanced": true
+  },
+  {
+   "name": "Complices",
+   "cost": 1,
+   "wording": "Révélation : Placez autant de [] que vous voulez sur votre gladiateur. À la fin du COMBAT, défaussez-les. Combat : Tous les 2 [] défaussés : +1 [] à votre gladiateur.",
+   "copies": 3,
+   "advanced": true
+  },
+  {
+   "name": "Promotion",
+   "cost": 2,
+   "wording": "Préparation : Choisissez et dévoilez un gladiateur Débutant ou Aguerri de votre ludus. Envoyez-le au dépôt de son Quartier. Recrutez le gladiateur du dessus de la réserve de rang supérieur.",
+   "copies": 3,
+   "advanced": true
+  },
+  {
+   "name": "Transfert",
+   "cost": 3,
+   "wording": "Préparation : Choisissez un des gladiateurs de votre ludus. Votre adversaire le recrute.",
+   "copies": 3,
+   "advanced": true
+  }
+ ],
+ "edicts": [
+  {
+   "id": "destockage",
+   "name": "Déstockage",
+   "rounds": [
+    "Le prix des gladiateurs achetés depuis la réserve du Quartier Aguerri est réduit de 1 denier .",
+    "Le prix des gladiateurs achetés depuis la réserve des Quartiers Aguerri et Légendaire est réduit de 1 denier .",
+    "Le prix des gladiateurs achetés depuis la réserve des Quartiers Aguerri et Légendaire est réduit de 1 denier .",
+    "Le prix des gladiateurs achetés depuis la réserve des Quartiers Aguerri et Légendaire est réduit de 1 denier ."
+   ]
+  },
+  {
+   "id": "prime-tactique",
+   "name": "Prime tactique",
+   "rounds": [
+    "Les lanistes reçoivent 1 denier‎ ‎ ‎ ‎ ‎ ‎ ‎ par tactique qu’ils placent dans le Colisée.",
+    "Les lanistes reçoivent 1 denier‎ ‎ ‎ ‎ ‎ ‎ ‎ par tactique qu’ils placent dans le Colisée.",
+    "Les lanistes reçoivent 1 denier‎ ‎ ‎ ‎ ‎ ‎ ‎ par tactique qu’ils placent dans le Colisée.",
+    "Les lanistes piochent, révèlent et ajoutent à leur main une tactique de la réserve. Celui ayant obtenu la moins chère reçoit la différence en deniers ."
+   ]
+  },
+  {
+   "id": "prime-de-victoire",
+   "name": "Prime de victoire",
+   "rounds": [
+    "Les lanistes reçoivent 2 deniers par duel remporté (au lieu de 1). Si un laniste remporte le combat, il obtient 2 gladiateurs récompense (au lieu de 1).",
+    "Les lanistes reçoivent 2 deniers par duel remporté (au lieu de 1). Si un laniste remporte le combat, il obtient 2 gladiateurs récompense (au lieu de 1).",
+    "Les lanistes reçoivent 2 deniers par duel remporté (au lieu de 1). Si un laniste remporte le combat, il obtient 2 gladiateurs récompense (au lieu de 1).",
+    "/"
+   ]
+  },
+  {
+   "id": "requisition",
+   "name": "Réquisition",
+   "rounds": [
+    "Défaussez un gladiateur de départ",
+    "Défaussez au hasard un gladiateur du rang le plus cher que vous possédez.",
+    "Défaussez au hasard un gladiateur du rang le plus cher que vous possédez.",
+    "Défaussez au hasard un gladiateur du rang le plus cher que vous possédez."
+   ]
+  },
+  {
+   "id": "austerite",
+   "name": "Austérité",
+   "rounds": [
+    "A chaque fois qu’un laniste effectue un achat, le coût de ses futurs achats augmente de 1 denier .",
+    "A chaque fois qu’un laniste effectue un achat, le coût de ses futurs achats augmente de 1 denier .",
+    "A chaque fois qu’un laniste effectue un achat, le coût de ses futurs achats augmente de 1 denier .",
+    "A chaque fois qu’un laniste effectue un achat, le coût de ses futurs achats augmente de 1 denier ."
+   ]
+  },
+  {
+   "id": "nouvelle-recrue",
+   "name": "Nouvelle recrue",
+   "rounds": [
+    "Les lanistes piochent et recrutent un gladiateur de la réserve du Quartier Débutant sans le montrer à leur adversaire.",
+    "Les lanistes piochent et recrutent un gladiateur de la réserve du Quartier Aguerri sans le montrer à leur adversaire.",
+    "Les lanistes piochent et recrutent un gladiateur de la réserve du Quartier Légendaire sans le montrer à leur adversaire.",
+    "Les lanistes piochent et recrutent un gladiateur de la réserve de chaque Quartier sans les montrer à leur adversaire."
+   ]
+  },
+  {
+   "id": "echange-force",
+   "name": "Échange forcé",
+   "rounds": [
+    "/",
+    "Si les 2 lanistes ont au moins 1 gladiateur dans leur ludus, ils s’échangent au hasard un de leurs gladiateurs.",
+    "Si les 2 lanistes ont au moins 1 gladiateur dans leur ludus, ils s’échangent au hasard un de leurs gladiateurs.",
+    "Si les 2 lanistes ont au moins 1 gladiateur dans leur ludus, ils s’échangent au hasard un de leurs gladiateurs."
+   ]
+  },
+  {
+   "id": "vente-forcee",
+   "name": "Vente forcée",
+   "rounds": [
+    "Les lanistes défaussent leurs 3 gladiateurs de Départ. Ils reçoivent 3 deniers .",
+    "Les lanistes défaussent tous leurs gladiateurs (hors gladiateurs de Départ). Ils reçoivent autant de deniers que le prix associé à leur rang.",
+    "Les lanistes défaussent tous leurs gladiateurs (hors gladiateurs de Départ). Ils reçoivent autant de deniers que le prix associé à leur rang.",
+    "Les lanistes défaussent tous leurs gladiateurs (hors gladiateurs de Départ). Ils reçoivent autant de deniers que le prix associé à leur rang."
+   ]
+  },
+  {
+   "id": "encouragement",
+   "name": "Encouragement",
+   "rounds": [
+    "+1 aux gladiateurs Débutants.",
+    "+1 aux gladiateurs Débutants.",
+    "+1 aux gladiateurs Débutants.",
+    "+1 aux gladiateurs Débutants."
+   ]
+  },
+  {
+   "id": "puissance-brute",
+   "name": "Puissance brute",
+   "rounds": [
+    "Aucun effet de gladiateur ne peut s’appliquer.",
+    "Aucun effet de gladiateur ne peut s’appliquer.",
+    "Aucun effet de gladiateur ne peut s’appliquer.",
+    "Aucun effet de gladiateur ne peut s’appliquer."
+   ]
+  },
+  {
+   "id": "effets-decisifs",
+   "name": "Effets décisifs",
+   "rounds": [
+    "Tous les gladiateurs en combat sont considérés comme ayant une puissance initiale de 0.",
+    "Tous les gladiateurs en combat sont considérés comme ayant une puissance initiale de 0.",
+    "Tous les gladiateurs en combat sont considérés comme ayant une puissance initiale de 0.",
+    "Tous les gladiateurs en combat sont considérés comme ayant une puissance initiale de 0."
+   ]
+  },
+  {
+   "id": "soif-de-sang",
+   "name": "Soif de sang",
+   "rounds": [
+    "Le laniste qui remporte le combat est celui qui a le plus de gladiateurs morts de son côté du Colisée. Précision : un gladiateur ne faisant face à aucun autre gladiateur meurt.",
+    "Le laniste qui remporte le combat est celui qui a le plus de gladiateurs morts de son côté du Colisée. Précision : un gladiateur ne faisant face à aucun autre gladiateur meurt.",
+    "Le laniste qui remporte le combat est celui qui a le plus de gladiateurs morts de son côté du Colisée. Précision : un gladiateur ne faisant face à aucun autre gladiateur meurt.",
+    "Le laniste qui remporte le combat est celui qui a le plus de gladiateurs morts de son côté du Colisée. Précision : un gladiateur ne faisant face à aucun autre gladiateur meurt."
+   ]
+  }
+ ]
+}

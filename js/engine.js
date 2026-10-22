@@ -316,7 +316,7 @@
       const order = [s.firstSeat, 1 - s.firstSeat];
       switch (id) {
         case 'echange-force':
-          if (r === 1) { this.say('Échange forcé (manche 1) : un nouvel Édit est révélé.'); await this.revealEdict(); }
+          if (r === 1) this.say('Échange forcé : aucun effet en manche 1.');
           else {
             const [a, b] = [s.players[0], s.players[1]];
             if (a.ludus.length && b.ludus.length) {
@@ -330,7 +330,7 @@
           }
           break;
         case 'prime-de-victoire':
-          if (r === 4) { this.say('Prime de victoire (manche 4) : un nouvel Édit est révélé.'); await this.revealEdict(); }
+          if (r === 4) this.say('Prime de victoire : aucun effet en manche 4.');
           break;
         case 'nouvelle-recrue': {
           const qs = r === 4 ? G_QUARTIERS : [G_QUARTIERS[Math.min(r, 3) - 1]];

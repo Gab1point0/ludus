@@ -541,7 +541,7 @@
       const order = d => d.type === 'tactic' ? 10 : (RANKS[d.rank].order);
       list.sort((a, b) => order(a) - order(b) || a.name.localeCompare(b.name));
       body = `<div class="libfilter">${[['all', 'Tout'], ['gladiator', 'Gladiateurs'], ['tactic', 'Tactiques'], ['depart', 'Départ'], ['debutant', 'Débutants'], ['aguerri', 'Aguerris'], ['legendaire', 'Légendaires']].map(([k, t]) => `<button class="${f === k ? 'on' : ''}" data-act="libf" data-f="${k}">${t}</button>`).join('')}</div>
-        <div class="cardgrid view">${list.map(d => `<div class="libcard"><div class="card" data-def="${d.id}" style="--w:150px"><img src="assets/cards/${d.img}-sm.webp" alt="${esc(d.name)}"></div><span class="cc">${d.start ? '3 par couleur' : '×' + d.copies}${d.advanced ? ' · avancée' : ''}</span></div>`).join('')}</div>`;
+        <div class="cardgrid view">${list.map(d => `<div class="libcard"><div class="card" data-def="${d.id}" style="--w:150px"><img src="assets/cards/${d.img}-sm.webp" alt="${esc(d.name)}"></div><span class="cc">${d.start ? d.copies + ' par couleur' : '×' + d.copies}${d.advanced ? ' · avancée' : ''}</span></div>`).join('')}</div>`;
     }
     const html = `<h2>📖 Règles et cartes</h2><div class="tabs-row">${[['rules', 'Résumé des règles'], ['cards', 'Toutes les cartes'], ['edicts', 'Édits de l\'Empereur'], ['aide', 'Aide de jeu']].map(([k, t]) => `<button class="${tab === k ? 'on' : ''}" data-act="helptab" data-t="${k}">${t}</button>`).join('')}</div>${body}<div class="row end"><button class="btn" data-act="close">Fermer</button></div>`;
     const ex = $('#overlay-root .modal-backdrop[data-mid="help"]');

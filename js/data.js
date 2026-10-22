@@ -45,11 +45,12 @@
   G('samnite', 'Samnite', 'debutant', 3, { text: '⚔ : −3 puissance s\'il y a un gladiateur de Départ en combat.' });
   G('thraex', 'Thraex', 'debutant', 2, { text: '« Infirmus ! »' });
 
-  // ---------- Gladiateurs Aguerris (23 : PEGMA existe en 3 exemplaires, confirmé par les auteurs) ----------
+  // ---------- Gladiateurs Aguerris (21 : 7 cartes × 3 exemplaires, PEGMA et NOBILE compris) ----------
   G('andabata', 'Andabata', 'aguerri', 4, { text: '⚔ : −1 puissance à vos gladiateurs en combat dans les zones de duel adjacentes.' });
   G('laquearius', 'Laquearius', 'aguerri', 2, { advanced: true, text: '⚔ : Si ce gladiateur a remporté le duel, recrutez le gladiateur adverse.' });
   G('murmillo', 'Murmillo', 'aguerri', 3, { text: '« Audaces fortuna iuvat ! »' });
-  G('nobile', 'Nobile', 'aguerri', 0, { copies: 5, text: '☠ : +6 deniers.' });
+  // Tableur V4.x.10 : 3 exemplaires (la carte du PDF d'impression en comptait 5, avec 1 seul PEGMA : l'Aguerri doit totaliser 21 cartes)
+  G('nobile', 'Nobile', 'aguerri', 0, { copies: 3, text: '☠ : +6 deniers.' });
   G('pegma', 'Pegma', 'aguerri', 0, { advanced: true, copies: 3, text: '⚡ : Choisissez jusqu\'à 5 gladiateurs Débutants et/ou Aguerris de votre ludus. Placez-les en renfort de ce gladiateur.' });
   G('retiarius', 'Retiarius', 'aguerri', 2, { text: '⚔ : +2 puissance si contre un gladiateur Débutant ou Aguerri.' });
   G('veneficus', 'Veneficus', 'aguerri', 0, { text: '⚔ : Si ce gladiateur est en train de perdre le duel, une égalité est provoquée.' });
@@ -68,15 +69,15 @@
   const CONVOI_TXT = '⚙ : Choisissez un Quartier. Envoyez au dépôt les cartes présentes sur ses emplacements achats. Ravitaillez-le.';
   const PUGIO_TXT = '⚔ : +1 puissance à votre gladiateur.';
   for (const c of ['bleu', 'rouge']) {
-    T('a-la-fosse-' + c, 'À la fosse !', 1, { base: 'a-la-fosse', color: c, start: true, prep: true, text: FOSSE_TXT });
-    T('convoi-' + c, 'Convoi', 1, { base: 'convoi', color: c, start: true, prep: true, text: CONVOI_TXT });
-    T('pugio-' + c, 'Pugio', 2, { base: 'pugio', color: c, start: true, text: PUGIO_TXT });
+    T('a-la-fosse-' + c, 'À la fosse !', 1, { base: 'a-la-fosse', color: c, start: true, copies: 1, prep: true, text: FOSSE_TXT });
+    T('convoi-' + c, 'Convoi', 1, { base: 'convoi', color: c, start: true, copies: 1, prep: true, text: CONVOI_TXT });
+    T('pugio-' + c, 'Pugio', 2, { base: 'pugio', color: c, start: true, copies: 1, text: PUGIO_TXT });
   }
 
   // ---------- Tactiques du Forum (52 - 6 de départ = 46) ----------
   T('missio', 'Missio', 1, { copies: 4, text: '⚡ : Désignez un emplacement gladiateur de cette zone de duel. ∞ : Aucun gladiateur ne peut mourir sur l\'emplacement désigné.' });
   T('a-la-fosse', 'À la fosse !', 1, { prep: true, text: FOSSE_TXT });
-  T('clef-de-la-fosse', 'Clef de la fosse', 3, { copies: 1, advanced: true, prep: true, text: '⚙ : Choisissez une tactique de la fosse. Ajoutez-la à votre main.' });
+  T('clef-de-la-fosse', 'Clef de la fosse', 4, { copies: 1, advanced: true, prep: true, text: '⚙ : Choisissez une tactique de la fosse. Ajoutez-la à votre main.' });
   T('complices', 'Complices', 1, { advanced: true, text: '⚡ : Placez autant de deniers que vous voulez sur ce COMPLICES. À la fin du COMBAT, défaussez-les. ⚔ : Tous les 2 deniers : +1 puissance à votre gladiateur.' });
   T('convoi', 'Convoi', 1, { prep: true, text: CONVOI_TXT });
   T('datura', 'Datura', 3, { copies: 4, text: '⚡ : Réappliquez les effets ⚡ de votre gladiateur. ∞ : Quand vous appliquez ses effets ⚔ ou ☠, appliquez-les une seconde fois.' });
@@ -85,7 +86,7 @@
   T('promotion', 'Promotion', 2, { advanced: true, prep: true, text: '⚙ : Choisissez et dévoilez un gladiateur Débutant ou Aguerri de votre ludus. Envoyez-le au dépôt de son Quartier. Recrutez le gladiateur du dessus de la réserve de rang supérieur.' });
   T('pugio', 'Pugio', 2, { text: PUGIO_TXT });
   T('repositionnement', 'Repositionnement', 2, { copies: 5, text: '⚡ : Choisissez une zone de duel (celle-ci y compris). Échangez vos cartes de la zone de duel (gladiateur et tactique) avec vos cartes de cette zone de duel.' });
-  T('reservation', 'Réservation', 3, { advanced: true, prep: true, text: '⚙ : Désignez un laniste. Choisissez un des gladiateurs de son ludus. Placez-le face cachée dans un emplacement gladiateur vide de son côté du Colisée.' });
+  T('reservation', 'Réservation', 4, { advanced: true, prep: true, text: '⚙ : Désignez un laniste. Choisissez un des gladiateurs de son ludus. Placez-le face cachée dans un emplacement gladiateur vide de son côté du Colisée.' });
   T('summa-rudis', 'Summa Rudis', 2, { text: '∞ : Aucun effet ⚡ ou ∞ de tactique ne peut cibler les gladiateurs et tactiques de cette zone de duel.' });
   T('transfert', 'Transfert', 3, { advanced: true, prep: true, text: '⚙ : Choisissez un des gladiateurs de votre ludus. Votre adversaire le recrute.' });
 
@@ -100,7 +101,8 @@
     '∞ : Le prix des gladiateurs achetés depuis la réserve des Quartiers Aguerri et Légendaire est réduit de 1 denier.',
     '∞ : Le prix des gladiateurs achetés depuis la réserve des Quartiers Aguerri et Légendaire est réduit de 1 denier.']);
   const SWAP = '⚡ : Si les 2 lanistes ont au moins 1 gladiateur dans leur ludus, ils s\'échangent au hasard un de leurs gladiateurs.';
-  E('echange-force', 'Échange forcé', ['⚡ : Révélez un nouvel Édit de l\'Empereur.', SWAP, SWAP, SWAP]);
+  const NONE = '/ : Aucun effet cette manche.';     // « / » dans le tableur V4.x.10
+  E('echange-force', 'Échange forcé', [NONE, SWAP, SWAP, SWAP]);
   E('effets-decisifs', 'Effets décisifs', same('⚔ : Tous les gladiateurs en combat sont considérés comme ayant une puissance initiale de 0.'));
   E('encouragement', 'Encouragement', same('⚔ : +1 puissance aux gladiateurs Débutants.'));
   E('nouvelle-recrue', 'Nouvelle recrue', [
@@ -109,7 +111,7 @@
     '⚡ : Les lanistes piochent et recrutent un gladiateur de la réserve du Quartier Légendaire sans le montrer à leur adversaire.',
     '⚡ : Les lanistes piochent et recrutent un gladiateur de la réserve de chaque Quartier sans les montrer à leur adversaire.']);
   const PV = '∞ : Les lanistes reçoivent 2 deniers par duel remporté (au lieu de 1). Si un laniste remporte le combat, il obtient 2 gladiateurs récompense (au lieu de 1).';
-  E('prime-de-victoire', 'Prime de victoire', [PV, PV, PV, '⚡ : Révélez un nouvel Édit de l\'Empereur.']);
+  E('prime-de-victoire', 'Prime de victoire', [PV, PV, PV, NONE]);
   const PT = '∞ : Les lanistes reçoivent 1 denier par tactique qu\'ils placent dans le Colisée.';
   E('prime-tactique', 'Prime tactique', [PT, PT, PT, '⚡ : Les lanistes piochent, révèlent et ajoutent à leur main une tactique de la réserve. Celui ayant obtenu la moins chère reçoit la différence en deniers.']);
   E('puissance-brute', 'Puissance brute', same('∞ : Aucun effet de gladiateur ne peut s\'appliquer.'));

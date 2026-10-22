@@ -47,12 +47,24 @@ Le créateur de la partie doit garder son onglet ouvert pendant toute la partie.
 ## Contenu du dossier
 * `index.html` — la page du jeu · `css/` — l'apparence · `js/` — le code (règles, ordinateur, interface, réseau)
 * `assets/` — les images des cartes, extraites de vos PDF
-* `tests/` — tests automatiques (`node tests/combat.test.js`, `node tests/flow.test.js`, `node tests/sim.js 200 normal normal`)
+* `tests/` — tests automatiques (`node tests/combat.test.js`, `node tests/flow.test.js`, `node tests/conformite.test.js`, `node tests/sim.js 200 normal normal`)
+
+## Conformité avec le tableur des auteurs (onglets V4.x.10)
+Le jeu a été comparé carte par carte au tableur `LUDUS_WORKSPACE` (onglets *V4.x.10 Gladiateurs / Tactiques / Edits* et feuilles maîtres).
+`node tests/conformite.test.js` refait cette comparaison (nombre d'exemplaires, rang, coût, puissance, Avantage, cartes avancées, texte des effets, Édits).
+Écarts corrigés lors de cette mise à jour :
+* **NOBILE** : 3 exemplaires (la carte imprimée en comptait 5) → Quartier Aguerri = 21 cartes, comme annoncé dans le matériel.
+* **CLEF DE LA FOSSE** et **RÉSERVATION** : coût **4** deniers dans le tableur (les images des cartes montrent 3 pièces ; le prix affiché dans le jeu est le bon).
+* **ÉCHANGE FORCÉ** (manche 1) et **PRIME DE VICTOIRE** (manche 4) : le tableur indique « / » = **aucun effet** (les cartes du PDF affichaient « Révélez un nouvel Édit »).
+Points restant à trancher par les auteurs :
+* **ANDABATA** : la colonne « Abilities » du tableur dit « Gagne en cas d'égalité » (Avantage) mais son texte de carte et l'image n'ont pas d'Avantage → le jeu n'en met pas.
+* La liste des fonctionnalités du tableur (colonne V4.14.x) indique des subventions limitées à 10, mais le retour de test n°118 (version 4.9.4.1) les a baissées à 7, comme le livret : **7** conservé.
+* Retours « à débattre » (n°149 à 151) : variante de SOIF DE SANG et Édits « cartes avancées » : non appliqués.
 
 ## Points d'interprétation des règles (à valider par les auteurs)
 Le livret laisse quelques cas ouverts ; voici comment ils sont codés (faciles à modifier dans `js/engine.js`) :
 
-1. **PEGMA** existe en **3 exemplaires** (confirmé par les auteurs) : le Quartier Aguerri compte donc 23 cartes dans l'application.
+1. **PEGMA** existe en **3 exemplaires** (confirmé par les auteurs et le tableur).
 2. **RÉSERVATION** : le gladiateur placé face cachée occupe un emplacement ; à la révélation, on ne tire que pour les emplacements encore vides. Si on désigne l'adversaire, on voit son ludus pour choisir.
 3. **SUMMA RUDIS** : empêche les effets ⚡ de DATURA, DISPENSE et REPOSITIONNEMENT d'agir sur sa zone (les effets ⚔ des tactiques et MISSIO ne sont pas bloqués).
 4. **DIMACHERUS** avec DATURA : le doublement des bonus/malus compte ×4 (le cas du renfort ne se pose pas : on ne peut pas mettre de gladiateur en renfort sur lui).
