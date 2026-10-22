@@ -193,8 +193,12 @@
       const basePrice = q === 'tactic' ? null : RANKS[q].price;
       const back = q === 'tactic' ? 'tactic' : 'gladiator';
       const rb = buy[q + ':r'];
+      // prix modifié par un Édit : vert (▼) si c'est moins cher que le prix normal, rouge (▲) si c'est plus cher
+      const cmp = (pz, base) => (base == null || pz == null || pz === base) ? '' : (pz < base ? 'down' : 'up');
+      const arrow = c => (c === 'down' ? '▼' : c === 'up' ? '▲' : '');
+      const rc = q === 'tactic' ? '' : cmp(pr.reserve, basePrice);
       const res = F.reserve > 0
-        ? `<div class="pile reserve ${rb ? 'buy' : ''}" ${rb ? `data-act="buy" data-opt="${rb.id}"` : ''} title="Réserve : ${F.reserve} carte(s)">${[0, 1, 2].map(() => cardHTML(null, { back })).join('')}<span class="cnt">${F.reserve}</span>${rb ? `<span class="cap">Dessus · ${coin} ${rb.price}</span>` : (q !== 'tactic' && prep && pr.reserve != null ? `<span class="cap no">${coin} ${pr.reserve}</span>` : '')}</div>`
+        ? `<div class="pile reserve ${rb ? 'buy' : ''}" ${rb ? `data-act="buy" data-opt="${rb.id}"` : ''} title="Réserve : ${F.reserve} carte(s)${rc ? (rc === 'down' ? ' — prix réduit par l\'Édit' : ' — prix augmenté par l\'Édit') : ''}">${[0, 1, 2].map(() => cardHTML(null, { back })).join('')}<span class="cnt">${F.reserve}</span>${rb ? `<span class="cap ${rc}">Dessus · ${coin} ${rb.price}${arrow(rc)}</span>` : (q !== 'tactic' && pr.reserve != null && (prep || rc) ? `<span class="cap ${prep ? 'no' : ''} ${rc}">${coin} ${pr.reserve}${arrow(rc)}</span>` : '')}</div>`
         : '<div class="pile reserve empty" title="Réserve vide (le dépôt est mélangé quand on en a besoin)"></div>';
       const dep = F.depot > 0
         ? `<div class="pile depot" title="Dépôt : ${F.depot} carte(s) (face cachée)">${[0, 1].map(() => cardHTML(null, { back })).join('')}<span class="cnt">${F.depot}</span></div>`
@@ -205,10 +209,22 @@
         const o = buy[`${q}:${i}`];
         const price = pr.slots[i];
         const base = q === 'tactic' ? CARDS[sl.card.def].price : basePrice;
-        const priceHTML = `<span class="price ${!o && prep ? 'no' : ''} ${price !== base ? 'mod' : ''}">${coin} ${price}</span>`;
+        const pc = cmp(price, base);
+        const priceHTML = `<span class="price ${!o && prep ? 'no' : ''} ${pc}" title="${pc === 'down' ? 'Prix réduit par l\'Édit (normalement ' + base + ')' : pc === 'up' ? 'Prix augmenté par l\'Édit (normalement ' + base + ')' : ''}">${coin} ${price}${arrow(pc)}</span>`;
         return cardHTML(sl.card.def, { uid: sl.card.uid, big, cls: `${o ? 'can' : ''} ${prep && !o ? 'dim' : ''}`, inner: priceHTML, attrs: o ? `data-act="buy" data-opt="${o.id}"` : '' });
       }).join('');
-      h += `<div class="qrow" style="--q:${col}"><div class="qlabel">${QUARTIERS[q].label}<small>${basePrice ? `${coin} ${basePrice} par gladiateur` : 'prix sur chaque carte'}</small></div>
+      // en-tête du Quartier : prix « sur table » (emplacements achats) et, s'il diffère, prix de la réserve
+      let lab = 'prix sur chaque carte';
+      if (basePrice) {
+        const sp = pr.slots.find(x => x != null);
+        const sc = sp != null ? cmp(sp, basePrice) : '';
+        if (sp != null) {
+          lab = `<span class="pv ${sc}">${coin} ${sp}${arrow(sc)}</span> par gladiateur`;
+          if (pr.reserve != null && pr.reserve !== sp) lab += ` · réserve <span class="pv ${rc}">${coin} ${pr.reserve}${arrow(rc)}</span>`;
+        } else lab = `réserve <span class="pv ${rc}">${coin} ${pr.reserve}${arrow(rc)}</span> par gladiateur`;
+        if (sc || rc) lab += ` <i class="was">(normalement ${basePrice})</i>`;
+      }
+      h += `<div class="qrow" style="--q:${col}"><div class="qlabel">${QUARTIERS[q].label}<small>${lab}</small></div>
         <div class="qline">${res}<span class="arrowb">▶</span>${slots}<span class="arrowb">▶</span>${dep}</div></div>`;
     }
     return h + '</div>';

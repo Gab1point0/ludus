@@ -65,6 +65,10 @@ body.theme-poke .slot.locked { background: rgba(20, 40, 100, .45); border-color:
 body.theme-poke .arrowb { color: rgba(30, 60, 140, .55); }
 body.theme-poke .pile.empty { border-color: rgba(30, 60, 140, .35); }
 body.theme-poke .card .price, body.theme-poke .pile .cap { background: #fff7d0; color: #1f2f6b; border-color: #e0a800; }
+body.theme-poke .card .price.down, body.theme-poke .pile .cap.down { background: #d6f8df; color: #0b7a2a; border-color: #2fa653; }
+body.theme-poke .card .price.up, body.theme-poke .pile .cap.up { background: #ffe0dc; color: #b3261e; border-color: #e0534a; }
+body.theme-poke .pv.down { color: #0b8a30; text-shadow: none; }
+body.theme-poke .pv.up { color: #c0261c; text-shadow: none; }
 /* Arène (le Colisée) : terrain d'herbe et rond central */
 body.theme-poke #colisee { background: radial-gradient(circle at 50% 50%, transparent 0 56px, rgba(255, 255, 255, .85) 57px 60px, transparent 61px), linear-gradient(90deg, transparent 49.7%, rgba(255, 255, 255, .6) 49.7% 50.3%, transparent 50.3%), repeating-linear-gradient(90deg, #5fbf5a 0 70px, #53b04f 70px 140px); }
 body.theme-poke .lane { background: rgba(255, 255, 255, .22); border-color: rgba(255, 255, 255, .55); }

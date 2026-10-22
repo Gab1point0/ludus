@@ -43,6 +43,7 @@ Le créateur de la partie doit garder son onglet ouvert pendant toute la partie.
 * Boutons en haut à droite : 🔊 sons · 📜 journal de la partie · 📖 règles et toutes les cartes · ☰ menu.
 * **↩ Annuler mon dernier coup** (bouton en haut) : si vous avez joué une carte ou fait un achat par erreur, la partie revient juste avant votre dernier choix. Contre l'ordinateur c'est immédiat ; à deux (même écran ou en ligne) l'adversaire voit une petite fenêtre « X demande à annuler son dernier coup » et doit **accepter** ou **refuser**.
 * **Édit de l'Empereur** : au début de chaque manche il s'affiche en grand au milieu de l'écran, et chaque joueur doit cliquer « J'ai lu » avant que ses effets ne s'appliquent.
+* **Prix modifiés par un Édit** : quand un Édit change un prix (Déstockage, Austérité…), le nouveau prix s'affiche en **vert ▼** s'il baisse et en **rouge ▲** s'il monte, sur les cartes, sur la réserve et dans l'en-tête de chaque Quartier (avec « normalement X »).
 * **Achats visibles** : pendant toute la phase de préparation, une bande sous les onglets montre les cartes achetées par vous et par votre adversaire (les gladiateurs tirés du dessus d'une réserve restent cachés, comme dans les règles). Survolez une carte pour la voir en grand.
 * Quand un choix dépend du plateau (REPOSITIONNEMENT, MISSIO, RÉSERVATION…), la fenêtre de choix se range **sur le côté** pour laisser le plateau visible.
 * « Mon ludus » et « Fosse » (en bas à gauche) permettent de consulter vos gladiateurs et les cartes défaussées.
