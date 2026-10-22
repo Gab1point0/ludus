@@ -32,14 +32,14 @@
     provFuture: 0.6, tvScale: 1.5, tacDecay: 0.35, playThr: 0.3,
     placeThr: 0.6, placeThr4: 0.12, eBig: 3, eBig4: 8, eWins: 0.7, eMargin: 0.08, eDead: 0.45,
     gm: {}, tm: {},
-    noise: 0, noisePlace: 0, skipPlace: 0, thr: -3, legBonus: 0,
+    noise: 0, noisePlace: 0, skipPlace: 0, thr: -3, legBonus: 0, mcW: 0, mcEarly: 0.5, mcK: 24, oldW: 1, resW: 0, xferOpp: 0,
   };
   // intervalles explorés par l'entraînement : [chemin, min, max]
   const SPEC = [
     ['wMean', 0.2, 3], ['earlyMean', 0.2, 1.6], ['wInc', 0, 1.2], ['bodiesLow', 0, 1.5],
     ['moneyW.0', 0, 1], ['moneyW.1', 0, 1], ['moneyW.2', 0, 1], ['moneyW.3', 0, 0.6],
     ['denial', 0, 1.5], ['resBias', -1.5, 1.5], ['provFuture', 0, 1], ['tvScale', 0.3, 4], ['tacDecay', 0, 1], ['playThr', 0, 1.5],
-    ['placeThr', 0, 1.6], ['placeThr4', -0.3, 0.8], ['eBig', 1, 10], ['eBig4', 2, 16], ['eWins', 0, 2], ['eMargin', 0, 0.4], ['eDead', 0, 1.2],
+    ['legBonus', -1, 3], ['mcW', 0, 80], ['mcEarly', 0, 0.6], ['oldW', 0, 2], ['resW', 0, 60], ['xferOpp', 0, 1.5], ['placeThr', 0, 1.6], ['placeThr4', -0.3, 0.8], ['eBig', 1, 10], ['eBig4', 2, 16], ['eWins', 0, 2], ['eMargin', 0, 0.4], ['eDead', 0, 1.2],
   ].concat(G_IDS.map(id => ['gm.' + id, 0.4, 1.8])).concat(T_IDS.map(id => ['tm.' + id, 0.3, 3]));
   function getPath(o, path) { return path.split('.').reduce((a, k) => (a == null ? a : a[k]), o); }
   function setPath(o, path, v) { const ks = path.split('.'); let a = o; for (let i = 0; i < ks.length - 1; i++) { if (a[ks[i]] == null) a[ks[i]] = {}; a = a[ks[i]]; } a[ks[ks.length - 1]] = v; }
@@ -155,6 +155,49 @@
     return S;
   }
 
+  // ---------------- simulation « Monte-Carlo » de la force d'un ludus au combat final ----------------
+  // On tire au hasard 3 gladiateurs de ce ludus (comme à la révélation) contre 3 gladiateurs d'un ludus adverse typique, on résout les duels avec les vraies
+  // règles (computeCombat) et on mesure la marge moyenne. Les tirages sont fixés d'avance (mêmes dés pour toutes les comparaisons) : ça donne des
+  // différences fiables entre « avec cette carte » et « sans cette carte », y compris la dilution d'un ludus trop large ou l'intérêt du PROVOCATOR en manche 4.
+  const MC_RAND = (() => { const r = E.mulberry32(20261022), a = new Float64Array(6000); for (let i = 0; i < a.length; i++) a[i] = r(); return a; })();
+  const POOL_ALL = []; Object.values(CARDS).forEach(c => { if (c.type === 'gladiator' && !c.start) for (let i = 0; i < c.copies; i++) POOL_ALL.push(c.id); });
+  const POOL_RANK = {}; Object.values(CARDS).forEach(c => { if (c.type === 'gladiator' && !c.start) (POOL_RANK[c.rank] = POOL_RANK[c.rank] || []).push(c.id); });
+  const mcCache = new Map();
+  function emptySide() { return { glad: null, gladFaceDown: false, renforts: [], tactic: null, tacticFaceDown: false }; }
+  // forced : gladiateur imposé dans la zone du centre (RÉSERVATION sur soi-même) ; emperor : marche de l'Empereur du combat évalué (4 = combat final)
+  function deckMargin(defs, oppCount, starterId, K, edict, forced, emperor) {
+    if (!defs.length) return -1;
+    const emp = emperor || 4;
+    const key = defs.slice().sort().join(',') + '|' + oppCount + '|' + K + '|' + (edict || '') + '|' + (forced || '') + '|' + emp;
+    const hit = mcCache.get(key); if (hit !== undefined) return hit;
+    let pool = defs;
+    if (forced) { const fi = defs.indexOf(forced); if (fi < 0) return -1; pool = without(defs, fi); }
+    const n = pool.length, need = forced ? 2 : 3, m = Math.max(3, Math.min(14, oppCount || 6));
+    let tot = 0;
+    for (let k = 0; k < K; k++) {
+      const o = (k * 14) % (MC_RAND.length - 14);
+      // mes cartes (sans remise)
+      const idx = []; const used = [];
+      for (let j = 0; j < Math.min(need, n); j++) { let x = Math.floor(MC_RAND[o + j] * (n - j)); for (const u of used.slice().sort((a, b) => a - b)) if (x >= u) x++; used.push(x); idx.push(x); }
+      const zones = [0, 1, 2].map(z => [emptySide(), emptySide()]);
+      if (forced) { zones[1][0].glad = { uid: 'mf', def: forced }; const zs = [0, 2]; idx.forEach((x, j) => { zones[zs[j]][0].glad = { uid: 'm' + j, def: pool[x] }; }); }
+      else idx.forEach((x, z) => { zones[z][0].glad = { uid: 'm' + z, def: pool[x] }; });
+      // l'adversaire : ses 3 Provocator + des cartes quelconques du Forum
+      for (let z = 0; z < 3; z++) {
+        const f = MC_RAND[o + 4 + z], f2 = MC_RAND[o + 8 + z];
+        const def = f < 3 / m ? starterId : POOL_ALL[Math.floor(f2 * POOL_ALL.length)];
+        zones[z][1].glad = { uid: 'o' + z, def };
+      }
+      const r = computeCombat({ zones, emperor: emp, edictId: edict || null, noDeath: [[], [], []] });
+      tot += 0.5 * (r.won[0] - r.won[1]) / 3 + (r.winner === 0 ? 0.5 : r.winner === 1 ? -0.5 : 0);
+    }
+    const v = tot / K;
+    if (mcCache.size > 20000) mcCache.clear();
+    mcCache.set(key, v);
+    return v;
+  }
+  const without = (arr, i) => arr.filter((_, j) => j !== i);
+
   function create(level, seedFn, params) {
     const rnd = seedFn || Math.random;
     const P = paramsFor(level, params);
@@ -163,6 +206,16 @@
     const ctxOf = view => ({ me: view.seat, round: view.round, emperor: view.emperor, edict: view.edict ? view.edict.def : null, noDeath: view.noDeath, P });
     const roundsLeft = r => Math.max(0, 4 - r);          // manches où un gladiateur supplémentaire rapportera sa subvention
     const wm = r => P.wMean * (r >= 4 ? 1 : P.earlyMean);
+    // valeur Monte-Carlo (marge au combat final) d'un ludus donné, vue du joueur de « view »
+    const mcOn = P.mcW > 0;
+    const mcV = (view, defs) => deckMargin(defs, view.players[1 - view.seat].ludusCount, 'provocator-' + view.players[1 - view.seat].color, P.mcK, view.round >= 4 && view.edict ? view.edict.def : null);
+    const mcF = round => P.mcW * (round >= 4 ? 1 : P.mcEarly);
+    // RÉSERVATION sur soi : on choisit sa meilleure carte (marge du combat de cette manche avec cette carte imposée + 2 tirées au hasard)
+    const mcForced = (view, ludus, def) => deckMargin(ludus, view.players[1 - view.seat].ludusCount, 'provocator-' + view.players[1 - view.seat].color, P.mcK, view.edict ? view.edict.def : null, def, view.emperor);
+    const mcNow = (view, ludus) => deckMargin(ludus, view.players[1 - view.seat].ludusCount, 'provocator-' + view.players[1 - view.seat].color, P.mcK, view.edict ? view.edict.def : null, null, view.emperor);
+    const bestForced = (view, ludus) => { let best = null, bv = -9; for (const d of Array.from(new Set(ludus))) { const v = mcForced(view, ludus, d); if (v > bv) { bv = v; best = d; } } return { def: best, v: bv }; };
+    const rankPool = r => POOL_RANK[r] || [];
+    const mcExpectedAdd = (view, ludus, rank) => { const pool = rankPool(rank); let s = 0; for (const d of pool) s += mcV(view, ludus.concat(d)); return s / Math.max(1, pool.length); };
 
     // ---------------- achats / préparation ----------------
     // score en « points de puissance » (équivalents) : gain de force du ludus + revenus futurs - coût
@@ -178,10 +231,12 @@
         if (b === 'a-la-fosse') {
           if (n < 4) return -9;
           const base = meanOf(ludus, round, P);
+          const v0 = mcOn ? mcV(view, ludus) : 0;
           let best = -9;
           for (let i = 0; i < n; i++) {
-            const rest = ludus.filter((_, j) => j !== i);
-            const s = wm(round) * 3 * (meanOf(rest, round, P) - base) - P.wInc * (n <= 7 ? roundsLeft(round) : 0) - 0.2;
+            const rest = without(ludus, i);
+            let s = P.oldW * wm(round) * 3 * (meanOf(rest, round, P) - base) - P.wInc * (n <= 7 ? roundsLeft(round) : 0) - 0.2;
+            if (mcOn) s += mcF(round) * (mcV(view, rest) - v0);
             if (s > best) best = s;
           }
           return best > P.playThr ? best : -9;
@@ -193,16 +248,31 @@
         }
         if (b === 'promotion') {
           const base = meanOf(ludus, round, P);
+          const v0 = mcOn ? mcV(view, ludus) : 0;
           let best = -9;
           for (let i = 0; i < n; i++) {
             const rk = CARDS[ludus[i]].rank;
             if (rk !== 'debutant' && rk !== 'aguerri') continue;
             const up = rk === 'debutant' ? RANK_AVG.aguerri : RANK_AVG.legendaire;
-            const rest = ludus.filter((_, j) => j !== i);
-            const s = wm(round) * 3 * (meanWithExtra(rest, round, P, up) - base);
+            const rest = without(ludus, i);
+            let s = P.oldW * wm(round) * 3 * (meanWithExtra(rest, round, P, up) - base);
+            if (mcOn) s += mcF(round) * (mcExpectedAdd(view, rest, rk === 'debutant' ? 'aguerri' : 'legendaire') - v0);
             if (s > best) best = s;
           }
           return best > P.playThr ? best : -9;
+        }
+        if (b === 'reservation' && mcOn && P.resW > 0 && n >= 3) {
+          // je m'impose ma meilleure carte dans l'Arène pour ce combat (au lieu de tirer 3 cartes au hasard)
+          const bf = bestForced(view, ludus);
+          const s = P.resW * (bf.v - mcNow(view, ludus));
+          return s > P.playThr ? s : -9;
+        }
+        if (b === 'transfert' && mcOn && P.xferOpp > 0 && n >= 5) {
+          // je donne ma carte la plus faible à l'adversaire : mon ludus se resserre, le sien se dilue
+          const v0 = mcV(view, ludus); let bv = -9;
+          for (const d of new Set(ludus)) { const v = mcV(view, without(ludus, ludus.indexOf(d))); if (v > bv) bv = v; }
+          const s = mcF(view.round) * (bv - v0) + P.xferOpp - P.wInc * roundsLeft(view.round);
+          return s > P.playThr ? s : -9;
         }
         return -9;
       }
@@ -222,14 +292,18 @@
       // « réflexe du joueur normal » : un Légendaire est la carte la plus puissante du Forum, on ne le laisse pas de côté
       if (o.q === 'legendaire') score += P.legBonus * (round >= 4 ? 0.6 : 1);
       let dMean;
+      const v0 = mcOn ? mcV(view, ludus) : 0;
       if (o.from === 'slot') {
         dMean = meanOf(ludus.concat(o.def), round, P) - base;
-        const gain = wm(round) * 3 * dMean;
+        let gain = P.oldW * wm(round) * 3 * dMean;
+        if (mcOn) gain += mcF(round) * (mcV(view, ludus.concat(o.def)) - v0);
         score += gain + P.wInc * incomeGain + P.bodiesLow * Math.max(0, 6 - n) / 3;
         if (opp.deniers >= o.price && gain > 0) score += P.denial * gain;
       } else {
         dMean = meanWithExtra(ludus, round, P, RANK_AVG[o.q] + P.resBias) - base;
-        score += wm(round) * 3 * dMean + P.wInc * incomeGain + P.bodiesLow * Math.max(0, 6 - n) / 3 - 0.2;
+        let gain = P.oldW * wm(round) * 3 * dMean;
+        if (mcOn) gain += mcF(round) * (mcExpectedAdd(view, ludus, o.q) - v0);
+        score += gain + P.wInc * incomeGain + P.bodiesLow * Math.max(0, 6 - n) / 3 - 0.2;
       }
       return score;
     }
@@ -350,8 +424,10 @@
         // gladiateur récompense : on recrute le meilleur (ou aucun s'il ferait baisser le niveau du ludus)
         const base = meanOf(ludus, round, P);
         let best = null, bs = -1e9;
+        const v0 = mcOn ? mcV(view, ludus) : 0;
         for (const c of sorted) {
-          const s = wm(round) * 3 * (meanOf(ludus.concat(c.def), round, P) - base) + P.wInc * (ludus.length < 7 ? roundsLeft(round) : 0) + jitter(P.noise);
+          let s = P.oldW * wm(round) * 3 * (meanOf(ludus.concat(c.def), round, P) - base) + P.wInc * (ludus.length < 7 ? roundsLeft(round) : 0) + jitter(P.noise);
+          if (mcOn) s += mcF(round) * (mcV(view, ludus.concat(c.def)) - v0);
           if (s > bs) { bs = s; best = c; }
         }
         return bs < -1.5 && min === 0 ? [] : [best.uid];
@@ -366,14 +442,18 @@
       if (p.source === 'ludus') {
         if (p.owner != null && p.owner !== me) return [sorted.sort((a, c) => val(a) - val(c))[0].uid];   // Réservation sur l'adversaire : son plus faible
         const t = p.title || '';
-        if (/RÉSERVATION/.test(t)) return [sorted.sort((a, c) => val(c) - val(a))[0].uid];
+        if (/RÉSERVATION/.test(t)) {
+          if (mcOn && P.resW > 0) { const bf = bestForced(view, ludus); const c = sorted.find(x => x.def === bf.def); if (c) return [c.uid]; }
+          return [sorted.sort((a, c) => val(c) - val(a))[0].uid];
+        }
         // À LA FOSSE, PROMOTION, TRANSFERT : on se sépare du gladiateur dont le départ fait le plus monter la moyenne du ludus
         const base = meanOf(ludus, round, P);
         let best = sorted[0], bs = -1e9;
         for (const c of sorted) {
           const i = ludus.indexOf(c.def);
           const rest = ludus.filter((_, j) => j !== i);
-          const s = meanOf(rest, round, P) - base;
+          let s = P.oldW * (meanOf(rest, round, P) - base) / 3;
+          if (mcOn) s += (mcV(view, rest) - mcV(view, ludus));
           if (s > bs) { bs = s; best = c; }
         }
         return [best.uid];
@@ -397,10 +477,14 @@
           }
           return best.id;
         }
-        case 'seat': { const o = opts.find(x => Number(x.id) !== me); return (o || opts[0]).id; }
+        case 'seat': {
+          if (mcOn && P.resW > 0) { const s = opts.find(x => Number(x.id) === me); if (s) return s.id; }     // RÉSERVATION sur soi-même
+          const o = opts.find(x => Number(x.id) !== me); return (o || opts[0]).id;
+        }
         case 'slot': {
           const own = opts.find(o => o.ref && o.ref.seat === me && /Mon/.test(o.label || ''));
           if (own) return own.id;
+          if (mcOn && P.resW > 0) { const c = opts.find(o => o.id === '1'); if (c) return c.id; }              // zone centrale si elle est libre
           return pickRand(opts).id;
         }
         case 'zone': {
@@ -457,8 +541,8 @@
 
   // ---- PARAMÈTRES ENTRAÎNÉS (générés par tests/train.js) ----
   /*TRAINED_BEGIN*/
-  // entraînement : génération 60
-  setPresets({ hard: {"wMean":0.917,"earlyMean":0.368,"wInc":0.996,"bodiesLow":1.12,"moneyW":[0.922,0.016,0.012,0.03],"denial":0.257,"resBias":1.137,"provFuture":0.397,"tvScale":1.65,"tacDecay":0.78,"playThr":0.097,"placeThr":1.184,"placeThr4":-0.166,"eBig":5.892,"eBig4":11.74,"eWins":0.897,"eMargin":0.26,"eDead":0.693,"gm":{"andabata":1.308,"caesarianus":0.794,"crupellarius":0.628,"dimacherus":0.713,"eques":1.571,"essedarius":1.538,"gallus":1.393,"gladiatrix":0.627,"hoplomaque":0.695,"laquearius":0.823,"munifex":1.005,"murmillo":1.226,"nobile":0.747,"pegma":0.797,"retiarius":0.928,"sagittarius":1.155,"samnite":0.865,"scissor":1.526,"secutor":1.563,"thraex":1.316,"veneficus":1.153},"tm":{"pugio":2.377,"lion-apprivoise":2.185,"missio":0.513,"dispense":1.198,"repositionnement":2.887,"datura":1.523,"summa-rudis":1.26,"complices":0.744,"convoi":1.054,"a-la-fosse":2.027,"clef-de-la-fosse":2.353,"promotion":0.991,"reservation":0.379,"transfert":1.118}} });
+  // entraînement : génération 50
+  setPresets({ hard: {"wMean":1.09,"earlyMean":0.419,"wInc":1.041,"bodiesLow":1.281,"moneyW":[0.807,0.084,0.024,0.09],"denial":0.484,"resBias":0.657,"provFuture":0.762,"tvScale":1.776,"tacDecay":0.75,"playThr":0.442,"legBonus":1.05,"mcW":27.219,"mcEarly":0.027,"oldW":0.655,"resW":40.897,"xferOpp":0.348,"placeThr":1.512,"placeThr4":-0.144,"eBig":2.432,"eBig4":9.51,"eWins":0.216,"eMargin":0.323,"eDead":0.726,"gm":{"andabata":0.854,"caesarianus":0.773,"crupellarius":0.634,"dimacherus":0.904,"eques":1.451,"essedarius":0.964,"gallus":1.105,"gladiatrix":0.524,"hoplomaque":0.875,"laquearius":0.694,"munifex":1.611,"murmillo":1.25,"nobile":0.747,"pegma":0.816,"retiarius":0.45,"sagittarius":0.867,"samnite":1.137,"scissor":1.38,"secutor":0.864,"thraex":1.243,"veneficus":1.114},"tm":{"pugio":2.235,"lion-apprivoise":1.297,"missio":0.501,"dispense":0.647,"repositionnement":2.624,"datura":1.357,"summa-rudis":0.867,"complices":0.877,"convoi":0.93,"a-la-fosse":2.655,"clef-de-la-fosse":2.292,"promotion":0.787,"reservation":1.723,"transfert":1.707}} });
   /*TRAINED_END*/
 
   const api = { create, gladValue, tacticValue, boardFromView, SPEC, DEFAULT_P, vectorToParams, paramsToVector, mergeParams, setPresets, paramsFor, getPath, setPath };

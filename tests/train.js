@@ -12,9 +12,11 @@ if (!isMainThread) {
   const AI = require(path.join('..', 'js', 'ai.js'));
   async function play(vecA, vecB, seed, swap) {
     const g = new Game({ seed, advanced: true, names: ['A', 'B'], colors: ['rouge', 'bleu'], speed: 0 });
-    const pA = vecA ? AI.vectorToParams(vecA) : undefined, pB = vecB ? AI.vectorToParams(vecB) : undefined;
-    const mk = p => AI.create('hard', g.rand.bind(g), p);
-    const ais = swap ? [mk(pB), mk(pA)] : [mk(pA), mk(pB)];
+    const pA = vecA ? AI.vectorToParams(vecA) : undefined;
+    const mkA = () => AI.create('hard', g.rand.bind(g), pA);
+    // adversaire : un niveau prédéfini (« easy », « normal »…) ou un vecteur de paramètres
+    const mkB = () => (typeof vecB === 'string' ? AI.create(vecB, g.rand.bind(g)) : AI.create('hard', g.rand.bind(g), vecB ? AI.vectorToParams(vecB) : undefined));
+    const ais = swap ? [mkB(), mkA()] : [mkA(), mkB()];
     g.ctrl = ais.map(ai => ({ decide: async (prompt, game) => ai.decide(game.viewFor(prompt.seat), prompt) }));
     await g.run();
     return (g.s.winner === 0) !== swap;
@@ -60,14 +62,21 @@ const randn = () => { let u = 0, v = 0; while (!u) u = Math.random(); while (!v)
 (async () => {
   const defaultVec = AI.paramsToVector(AI.DEFAULT_P);
   const startFile = path.join(outDir, 'best.json');
-  let mean = toNorm(fs.existsSync(startFile) && !process.env.FRESH ? JSON.parse(fs.readFileSync(startFile, 'utf8')).vec : defaultVec);
+  let startVec = defaultVec;
+  if (fs.existsSync(startFile) && !process.env.FRESH) {            // reprise des paramètres déjà entraînés (associés par nom, au cas où la liste des paramètres a changé)
+    const saved = JSON.parse(fs.readFileSync(startFile, 'utf8'));
+    startVec = SPEC.map(([name], i) => { const j = (saved.spec || []).indexOf(name); return j >= 0 ? saved.vec[j] : defaultVec[i]; });
+  }
+  if (process.env.INIT) { const init = JSON.parse(process.env.INIT); startVec = startVec.map((v, i) => (init[SPEC[i][0]] != null ? init[SPEC[i][0]] : v)); }    // ex. INIT='{"mcW":30}'
+  let mean = toNorm(startVec.map((v, i) => Math.max(lo[i], Math.min(hi[i], v))));
+  const OPPS = (process.env.OPPS || 'champ,default').split(',');          // adversaires d'entraînement : easy, normal, champ (centre actuel), default
   let sigma = mean.map(() => parseFloat(process.env.SIGMA || '0.18'));
   console.log(`Entraînement : ${DIM} paramètres, population ${POP}, ${GAMES} parties/candidat, ${NW} cœurs, ${GENS} générations`);
   const t0 = Date.now();
   for (let gen = 1; gen <= GENS; gen++) {
     const seed = gen * 1000003;
     const champ = toReal(mean);
-    const opps = [champ, defaultVec];                  // le candidat joue contre le centre actuel et contre la version d'origine
+    const opps = OPPS.map(o => (o === 'champ' ? champ : o === 'default' ? defaultVec : o));
     const cands = [];
     for (let k = 0; k < POP; k++) cands.push(k === 0 ? mean.slice() : mean.map((m, i) => Math.max(0, Math.min(1, m + sigma[i] * randn()))));
     const res = await Promise.all(cands.map(z => evaluate(toReal(z), opps, GAMES, seed)));
@@ -82,8 +91,8 @@ const randn = () => { let u = 0, v = 0; while (!u) u = Math.random(); while (!v)
     const avgFit = fit.reduce((a, b) => a + b, 0) / POP;
     fs.writeFileSync(path.join(outDir, 'best.json'), JSON.stringify({ gen, vec: toReal(mean), spec: SPEC.map(s => s[0]) }));
     if (gen % 5 === 0 || gen === 1 || gen === GENS) {
-      const b = await evaluate(toReal(mean), [defaultVec], 1200, 777000 + gen);
-      console.log(`gén ${String(gen).padStart(3)} | meilleur ${(fit[order[0]] * 100).toFixed(1)}% moyenne ${(avgFit * 100).toFixed(1)}% | σ ${avgSig.toFixed(3)} | centre vs version d'origine : ${(b.wins / b.n * 100).toFixed(1)}% | ${Math.round((Date.now() - t0) / 1000)} s`);
+      const be = await evaluate(toReal(mean), ['easy'], 1000, 777000 + gen), bn = await evaluate(toReal(mean), ['normal'], 1000, 778000 + gen);
+      console.log(`gén ${String(gen).padStart(3)} | meilleur ${(fit[order[0]] * 100).toFixed(1)}% moyenne ${(avgFit * 100).toFixed(1)}% | σ ${avgSig.toFixed(3)} | centre vs FACILE : ${(be.wins / be.n * 100).toFixed(1)}% | vs NORMAL : ${(bn.wins / bn.n * 100).toFixed(1)}% | ${Math.round((Date.now() - t0) / 1000)} s`);
     }
   }
   for (const w of workers) w.terminate();
