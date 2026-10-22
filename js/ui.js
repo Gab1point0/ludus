@@ -201,7 +201,7 @@
         : '<div class="pile depot empty" title="Dépôt vide"></div>';
       const slots = F.slots.map((sl, i) => {
         if (sl.locked) return `<div class="slot locked">🔒<b>${sl.unlock}</b>manche</div>`;
-        if (!sl.card) return `<div class="slot">${q === 'tactic' ? '◆' : '⚔'}</div>`;
+        if (!sl.card) return `<div class="slot">${q === 'tactic' ? '◆' : (TH() ? '🏺' : '⚔')}</div>`;
         const o = buy[`${q}:${i}`];
         const price = pr.slots[i];
         const base = q === 'tactic' ? CARDS[sl.card.def].price : basePrice;
@@ -245,7 +245,7 @@
     const gslot = (z, seat) => {
       const zn = v.zones[z][seat]; const g = zn.glad;
       let inner = '';
-      if (!g) inner = '<span>🛡</span>';
+      if (!g) inner = `<span>${TH() ? '🏺' : '🛡'}</span>`;
       else if (g.hidden) inner = cardHTML(null, { back: 'gladiator' });
       else {
         let cls = '', badge = '';

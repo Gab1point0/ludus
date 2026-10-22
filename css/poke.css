@@ -18,6 +18,11 @@
 .pokeball { display: inline-block; width: 74px; height: 74px; border-radius: 50%; border: 5px solid #1b1b2a; background: linear-gradient(#e63946 0 46%, #1b1b2a 46% 54%, #f4f4f4 54%); position: relative; box-shadow: 0 5px 14px rgba(0, 0, 0, .45); }
 .pokeball::after { content: ''; position: absolute; left: 50%; top: 50%; width: 22px; height: 22px; margin: -11px 0 0 -11px; border-radius: 50%; background: #f4f4f4; border: 5px solid #1b1b2a; }
 
+/* petite Poké Ball inline (remplace l'icône d'équipe / les emplacements vides) */
+.pkb { display: inline-block; width: 1em; height: 1em; border-radius: 50%; border: .12em solid #1b1b2a; background: linear-gradient(#e63946 0 44%, #1b1b2a 44% 56%, #f4f4f4 56%); position: relative; vertical-align: -.14em; box-sizing: border-box; }
+.pkb::after { content: ''; position: absolute; left: 50%; top: 50%; width: .3em; height: .3em; margin: -.15em 0 0 -.15em; border-radius: 50%; background: #f4f4f4; border: .08em solid #1b1b2a; box-sizing: border-box; }
+.slot .pkb, .gslot .pkb { width: 1.1em; height: 1.1em; opacity: .55; }
+
 /* ---------- thème Pokémon ---------- */
 body.theme-poke {
   --bg: #0e1222; --bg2: #172043; --panel: #1e2a55; --panel2: #263466; --line: #3d55a0;

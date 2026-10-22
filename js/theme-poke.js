@@ -79,7 +79,8 @@
     rule('Forum', 'Poké Marché', 'gu'),
     rule('Quartiers', 'Rayons'), rule('Quartier', 'Rayon'),
     rule('tactiques', 'cartes Objet', 'gu'), rule('tactique', 'carte Objet', 'gu'), rule('Tactiques', 'Objets', 'gu'), rule('Tactique', 'Objet', 'gu'),
-    [new RegExp('(\\d+) ?deniers?(?:\\(s\\))?', 'giu'), (m, n) => n + ' ₽'], rule('deniers?(?:\\(s\\))?', '₽'),
+    [new RegExp('(\\d+) ?deniers?(?:\\(s\\))?', 'giu'), (m, n) => n + ' ₽'],
+    [/(\d+) d\.(?![\p{L}])/gu, (m, n) => n + ' ₽'], rule('deniers?(?:\\(s\\))?', '₽'),
     rule('sesterce', 'Badge'),
     rule('de Départ', 'Starter'), rule('Départ', 'Starter'),
     rule('Débutants', 'Basiques'), rule('Débutant', 'Basique'), rule('Aguerris', 'Évolués'), rule('Aguerri', 'Évolué'),
@@ -87,10 +88,13 @@
     rule('meurent', 'sont K.O.'), rule('meurt', 'est K.O.'), rule('mourir', 'être K.O.'), rule('morts', 'K.O.'),
     rule('manches?', 'étape'),
   ];
+  // pictogrammes de LUDUS -> pictogrammes Pokémon ( = pastille Poké Ball dessinée en CSS, voir walk())
+  const EMOJI = [['⚔️', '🏟️'], ['🏛️', '🛒'], ['🛡️', '🥋'], ['🛡', '🥋'], ['🏺', ''], ['🃏', '🎴'], ['💀', '💫'], ['☠', '💫'], ['⚔', '💥'], ['⚙️', '🎒'], ['⚙', '🎒'], ['⚡', '✨']];
   let NAMEREPS = [];      // noms de cartes écrits en MAJUSCULES dans les textes d'effets (ex. « X HOPLOMAQUE ») -> nom Pokémon
   function lex(s) {
     for (const [re, f] of NAMEREPS) s = s.replace(re, f);
     for (const [re, f] of LEX) s = s.replace(re, f);
+    for (const [a, b] of EMOJI) if (s.includes(a)) s = s.split(a).join(b);
     return s;
   }
 
@@ -133,7 +137,20 @@
   const snap = { cards: null, ranks: null, quarters: null, edicts: null };
   const T = { active: false, name: 'ludus', brand: 'LUDUS', face, edictFace, backFace, edictIcon, lex, aiName: 'Ordinateur', trainerName: 'Laniste' };
   let observer = null, busy = false;
-  function fixText(n) { const v = n.data, w = lex(v); if (w !== v) n.data = w; }
+  const ORIG = new Map();     // textes statiques de la page (menu, onglets…) à restaurer quand on revient à LUDUS
+  const isStatic = n => n.parentElement && n.parentElement.closest('#menu,#tabs,#logdrawer,#hub');
+  function fixText(n) {
+    const v = n.data, w = lex(v);
+    if (w === v) return;
+    if (isStatic(n) && !ORIG.has(n)) ORIG.set(n, v);
+    if (w.includes('')) {                       // pastille Poké Ball : on remplace le caractère par un petit élément
+      const frag = document.createDocumentFragment();
+      w.split('').forEach((part, i) => { if (i) { const b = document.createElement('span'); b.className = 'pkb'; frag.appendChild(b); } if (part) frag.appendChild(document.createTextNode(part)); });
+      n.replaceWith(frag);
+      return;
+    }
+    n.data = w;
+  }
   function fixEl(el) {
     for (const a of ['title', 'alt', 'placeholder', 'aria-label']) { const v = el.getAttribute && el.getAttribute(a); if (v) { const w = lex(v); if (w !== v) el.setAttribute(a, w); } }
   }
@@ -143,7 +160,8 @@
     fixEl(node);
     node.querySelectorAll && node.querySelectorAll('[title],[alt],[placeholder],[aria-label]').forEach(fixEl);
     const tw = document.createTreeWalker(node, NodeFilter.SHOW_TEXT);
-    let t; while ((t = tw.nextNode())) fixText(t);
+    const all = []; let t; while ((t = tw.nextNode())) all.push(t);
+    all.forEach(fixText);
   }
   function startObserver() {
     if (observer) return;
@@ -187,6 +205,11 @@
     document.body.classList.toggle('theme-poke', poke);
     document.title = poke ? 'POKÉ-LUDUS — le jeu de Dresseurs (fan-made)' : 'LUDUS — le jeu de lanistes';
     if (root.LudusSfx) root.LudusSfx.S.theme = T.name;
+    if (!poke) { ORIG.forEach((v, n) => { if (n.isConnected) n.data = v; }); ORIG.clear(); document.querySelectorAll('.pkb').forEach(b => { if (b.closest('#menu,#tabs,#logdrawer,#hub')) b.replaceWith('🏺'); }); }
+    const fav = document.querySelector('link[rel="icon"]');
+    if (fav) fav.href = poke
+      ? "data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 64 64'%3E%3Ccircle cx='32' cy='32' r='28' fill='%23f4f4f4' stroke='%231b1b2a' stroke-width='5'/%3E%3Cpath d='M4 32a28 28 0 0 1 56 0z' fill='%23e63946' stroke='%231b1b2a' stroke-width='5'/%3E%3Ccircle cx='32' cy='32' r='8' fill='%23f4f4f4' stroke='%231b1b2a' stroke-width='5'/%3E%3C/svg%3E"
+      : "data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 64 64'%3E%3Crect width='64' height='64' rx='12' fill='%23201813'/%3E%3Ctext x='32' y='46' font-size='38' text-anchor='middle'%3E%E2%9A%94%EF%B8%8F%3C/text%3E%3C/svg%3E";
     if (poke) { startObserver(); walk(document.body); } else stopObserver();
     // textes de marque
     const q = s => document.querySelector(s);
