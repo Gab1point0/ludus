@@ -80,6 +80,5 @@ Tous les sons sont synth√©tis√©s par le navigateur (aucun fichier audio) : cors 
 foule de l'ar√®ne, gong de l'Empereur, pi√®ces, fanfare de victoire‚Ä¶ Le bouton üîä (en haut, ou sur le menu principal) les coupe ;
 le menu ‚ò∞ permet de r√©gler le volume et l'ambiance de l'ar√®ne.
 
-## PokÈ-Ludus (deuxiËme jeu)
-Le menu d'accueil propose **LUDUS** ou **POK…-LUDUS**, une version PokÈmon (projet de fans, non officiel) : les gladiateurs deviennent des PokÈmon (ex. MÈtamorph pour PEGMA, Smogogo pour VENEFICUS, Mewtwo pour DIMACHERUS), les tactiques des objets ou personnages (Ceinture Force pour MISSIO, MÈga-Bracelet pour DATURA, Team Rocket pour COMPLICESÖ), le Forum un PokÈ MarchÈ, le ColisÈe une ArËne, les …dits des dÈcrets du MaÓtre de la Ligue. Les rËgles sont identiques. Le thËme est dans `js/theme-poke.js` et `css/poke.css`. Les images sont chargÈes depuis PokeAPI/sprites (connexion Internet nÈcessaire pour les voir).
-
+## Pok√©-Ludus (deuxi√®me jeu)
+Le menu d'accueil propose **LUDUS** ou **POK√â-LUDUS**, une version Pok√©mon (projet de fans, non officiel) : les gladiateurs deviennent des Pok√©mon (ex. M√©tamorph pour PEGMA, Smogogo pour VENEFICUS, Mewtwo pour DIMACHERUS), les tactiques des objets ou personnages (Ceinture Force pour MISSIO, M√©ga-Bracelet pour DATURA, Team Rocket pour COMPLICES‚Ä¶), le Forum un Pok√© March√©, le Colis√©e une Ar√®ne, les √âdits des d√©crets du Ma√Ætre de la Ligue. Les r√®gles sont identiques. Le th√®me est dans `js/theme-poke.js` et `css/poke.css`. Les images sont charg√©es depuis PokeAPI/sprites (connexion Internet n√©cessaire pour les voir).
