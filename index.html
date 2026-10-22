@@ -1,0 +1,75 @@
+<!doctype html>
+<html lang="fr">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>LUDUS — le jeu de lanistes</title>
+<link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 64 64'%3E%3Crect width='64' height='64' rx='12' fill='%23201813'/%3E%3Ctext x='32' y='46' font-size='38' text-anchor='middle'%3E%E2%9A%94%EF%B8%8F%3C/text%3E%3C/svg%3E">
+<link rel="stylesheet" href="css/style.css">
+</head>
+<body>
+<div id="app">
+
+  <!-- ===================== MENU ===================== -->
+  <section id="menu" class="screen active">
+    <div class="menu-poster" style="background-image:url(assets/ui/cover.jpg)"></div>
+    <div class="menu-panel">
+      <div class="menu-logo">LUDUS</div>
+      <p class="menu-sub">Soyez le laniste le plus puissant de Rome.<br>Un jeu de <b>Séraphin Gaillard</b> &amp; <b>Gabin Guyot</b></p>
+      <div class="menu-buttons">
+        <button class="btn primary big" data-action="new-ai"><span class="ico">⚔️</span> Jouer contre l'ordinateur</button>
+        <button class="btn big" data-action="new-hotseat"><span class="ico">👥</span> Deux joueurs, même écran</button>
+        <button class="btn big" data-action="new-online"><span class="ico">🌐</span> Jouer en ligne avec un ami</button>
+        <button class="btn big ghost" data-action="open-help"><span class="ico">📖</span> Règles &amp; cartes</button>
+      </div>
+      <div id="menu-resume"></div>
+      <button class="btn small ghost" id="menu-sound" data-act="sound" style="margin-top:14px">🔊 Sons activés</button>
+      <p class="menu-foot">Version 1.1 · © 2026 Séraphin Gaillard &amp; Gabin Guyot</p>
+    </div>
+  </section>
+
+  <!-- ===================== PARTIE ===================== -->
+  <section id="game" class="screen">
+    <header id="hud"></header>
+    <div id="middle">
+      <main id="stage">
+        <nav id="tabs">
+          <button data-tab="forum">🏛️ Forum</button>
+          <button data-tab="colisee">⚔️ Colisée</button>
+          <span id="tabs-hint"></span>
+        </nav>
+        <div id="panels">
+          <div id="forum" class="panel"></div>
+          <div id="colisee" class="panel"></div>
+        </div>
+      </main>
+    </div>
+    <footer id="bottom">
+      <div id="promptbar"></div>
+      <div id="handrow">
+        <div id="piles"></div>
+        <div id="hand"></div>
+      </div>
+    </footer>
+  </section>
+
+  <aside id="logdrawer">
+    <div class="ld-head"><b>📜 Journal de la partie</b><button class="iconbtn" data-act="log" title="Fermer">✕</button></div>
+    <div id="log-wrap"><div id="log"></div></div>
+  </aside>
+  <div id="preview"></div>
+  <div id="overlay-root"></div>
+  <div id="banner" class="banner"></div>
+  <div id="toast" class="toast"></div>
+</div>
+
+<script src="js/vendor/peerjs.min.js"></script>
+<script src="js/data.js"></script>
+<script src="js/engine.js"></script>
+<script src="js/ai.js"></script>
+<script src="js/session.js"></script>
+<script src="js/sfx.js"></script>
+<script src="js/ui.js"></script>
+<script src="js/app.js"></script>
+</body>
+</html>

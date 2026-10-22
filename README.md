@@ -1,0 +1,60 @@
+# LUDUS — le jeu de lanistes (version numérique)
+
+Jeu de **Séraphin Gaillard & Gabin Guyot**. Cette application permet de jouer à LUDUS dans un navigateur
+(Edge, Chrome, Firefox…), sans rien installer.
+
+## Lancer le jeu
+
+Double-cliquez sur **`index.html`**. C'est tout.
+
+## Les 3 façons de jouer
+
+| Mode | Comment |
+|---|---|
+| **Contre l'ordinateur** | 3 niveaux : Facile, Normal, Difficile. |
+| **Deux joueurs, même écran** | Un écran « Passez l'écran à… » masque les cartes cachées entre deux tours. |
+| **En ligne avec un ami** | Chacun sur son appareil (ordinateur, tablette ou téléphone). |
+
+### Jouer en ligne
+1. Le premier joueur choisit **Jouer en ligne → Créer une partie**. Un code de 5 lettres apparaît.
+2. Il envoie ce code à son ami (message, SMS…).
+3. L'ami ouvre le jeu, choisit **Jouer en ligne → Rejoindre une partie** et saisit le code.
+4. Quand l'ami est connecté, le créateur clique sur **Lancer la partie**.
+
+Les deux joueurs ont besoin d'Internet. La connexion est directe entre les deux navigateurs
+(technologie WebRTC, via le service gratuit PeerJS pour la mise en relation).
+Elle peut être bloquée sur certains réseaux très protégés (wifi d'établissement, par exemple) :
+dans ce cas, essayez en 4G/5G. Si la connexion est perdue, l'ami peut rejoindre avec le même code et la partie reprend.
+Le créateur de la partie doit garder son onglet ouvert pendant toute la partie.
+
+## Utilisation en jeu
+* **Survolez une carte** pour la voir en grand.
+* **Préparation** : cliquez une carte du Forum pour l'acheter, ou une carte ⚙ de votre main pour l'utiliser.
+* **Tactiques** : cliquez une tactique de votre main, puis un emplacement libre (ou glissez-la).
+* Boutons en haut à droite : 🔊 sons · 📜 journal de la partie · 📖 règles et toutes les cartes · ☰ menu.
+* « Mon ludus » et « Fosse » (en bas à gauche) permettent de consulter vos gladiateurs et les cartes défaussées.
+* Les puissances affichées sur les gladiateurs sont calculées automatiquement (désactivable dans le menu).
+
+## Contenu du dossier
+* `index.html` — la page du jeu · `css/` — l'apparence · `js/` — le code (règles, ordinateur, interface, réseau)
+* `assets/` — les images des cartes, extraites de vos PDF
+* `tests/` — tests automatiques (`node tests/combat.test.js`, `node tests/flow.test.js`, `node tests/sim.js 200 normal normal`)
+
+## Points d'interprétation des règles (à valider par les auteurs)
+Le livret laisse quelques cas ouverts ; voici comment ils sont codés (faciles à modifier dans `js/engine.js`) :
+
+1. **PEGMA** existe en **3 exemplaires** (confirmé par les auteurs) : le Quartier Aguerri compte donc 23 cartes dans l'application.
+2. **RÉSERVATION** : le gladiateur placé face cachée occupe un emplacement ; à la révélation, on ne tire que pour les emplacements encore vides. Si on désigne l'adversaire, on voit son ludus pour choisir.
+3. **SUMMA RUDIS** : empêche les effets ⚡ de DATURA, DISPENSE et REPOSITIONNEMENT d'agir sur sa zone (les effets ⚔ des tactiques et MISSIO ne sont pas bloqués).
+4. **DIMACHERUS** avec DATURA : le doublement des bonus/malus compte ×4 (le cas du renfort ne se pose pas : on ne peut pas mettre de gladiateur en renfort sur lui).
+5. **SOIF DE SANG** : les deniers « par duel remporté » restent basés sur les duels ; seul le vainqueur du combat change.
+6. **PROMOTION** peut recruter dans le Quartier Légendaire dès la manche 1 (c'est un recrutement, pas un achat).
+7. **RETIARIUS** ne gagne pas son bonus face à un gladiateur de Départ ; **SAMNITE** subit son malus si un gladiateur de Départ est en combat, de n'importe quel côté.
+8. **Réserve vide** : le dépôt est mélangé dès qu'on a besoin de piocher dans cette réserve.
+9. **PRIME TACTIQUE** (manches 1 à 3) : le denier est versé au moment où la tactique est posée.
+10. Le tirage au sort du premier laniste reproduit les deux poings (le résultat est aléatoire).
+
+## Sons
+Tous les sons sont synthétisés par le navigateur (aucun fichier audio) : cors romains, tambours de guerre, épées qui s'entrechoquent,
+foule de l'arène, gong de l'Empereur, pièces, fanfare de victoire… Le bouton 🔊 (en haut, ou sur le menu principal) les coupe ;
+le menu ☰ permet de régler le volume et l'ambiance de l'arène.
