@@ -6,8 +6,9 @@
   const D = root.LudusData || (typeof require !== 'undefined' ? require('./data.js') : null);
   const { CARDS, RANKS, QUARTIERS, EDICTS } = D;
 
-  const ART = id => `https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/other/official-artwork/${id}.png`;
-  const ITEM = n => `https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/items/${n}.png`;
+  // images copiées dans le projet (assets/poke/), issues de PokeAPI/sprites
+  const ART = id => `assets/poke/pokemon/${id}.webp`;
+  const ITEM = n => `assets/poke/items/${n}.png`;
   const TYPE_COLOR = { Normal: '#A8A878', Feu: '#F08030', Eau: '#6890F0', 'Électrik': '#F8D030', Plante: '#78C850', Glace: '#98D8D8', Combat: '#C03028', Poison: '#A040A0', Sol: '#E0C068', Vol: '#A890F0', Psy: '#F85888', Insecte: '#A8B820', Roche: '#B8A038', Spectre: '#705898', Dragon: '#7038F8', 'Ténèbres': '#705848', Acier: '#B8B8D0', 'Fée': '#EE99AC' };
 
   // ---------- gladiateurs -> Pokémon (nom français, n° du Pokédex, types, lien avec l'effet) ----------
@@ -25,33 +26,33 @@
     laquearius: [97, 'Hypnomade', ['Psy'], 'Il hypnotise et capture son adversaire.'],
     murmillo: [67, 'Machopeur', ['Combat'], '« Machopeur ne recule jamais ! »'],
     nobile: [53, 'Persian', ['Normal'], 'Le noble félin : quand il tombe, il laisse une fortune (Jackpot).'],
-    pegma: [132, 'Métamorph', ['Normal'], 'Il se combine à toute son équipe pour devenir immense.'],
+    pegma: [870, 'Hexadron', ['Combat'], 'Sa formation en phalange rassemble jusqu\'à 5 alliés autour de lui.'],
     retiarius: [168, 'Migalos', ['Insecte', 'Poison'], 'Il piège ses adversaires dans sa toile.'],
-    veneficus: [110, 'Smogogo', ['Poison'], 'Il se perd en Explosion : un adversaire gagnant ? Les deux sont K.O. !'],
+    veneficus: [101, 'Électrode', ['Électrik'], 'Il explose quand il perd : l\'égalité est provoquée.'],
     crupellarius: [379, 'Registeel', ['Acier'], 'Légendaire cuirassé : il écrase les objets adverses.'],
     dimacherus: [150, 'Mewtwo', ['Psy'], 'Légendaire amplificateur : les bonus et malus sont doublés.'],
     eques: [647, 'Keldeo', ['Eau', 'Combat'], 'Le Légendaire cavalier : il chasse les autres Légendaires.'],
-    essedarius: [78, 'Galopa', ['Feu'], 'Il galope à toute vitesse et entraîne ses voisins.'],
-    sagittarius: [724, 'Archéduc', ['Plante', 'Spectre'], 'L\'archer : il décoche une plume sur son meilleur allié.'],
-    scissor: [212, 'Cizayox', ['Insecte', 'Acier'], 'Ses pinces coupent net les capacités adverses.'],
-    secutor: [248, 'Tyranocif', ['Roche', 'Ténèbres'], '« Sa mâchoire broie la roche. »'],
+    essedarius: [243, 'Raikou', ['Électrik'], 'Légendaire fulgurant : il galope et galvanise ses voisins.'],
+    sagittarius: [249, 'Lugia', ['Psy', 'Vol'], 'Légendaire protecteur : il prend un allié sous son aile.'],
+    scissor: [649, 'Genesect', ['Insecte', 'Acier'], 'Légendaire cybernétique : il neutralise les capacités adverses.'],
+    secutor: [383, 'Groudon', ['Sol'], '« Le Légendaire qui fait trembler la terre. »'],
   };
   // ---------- tactiques -> objets / personnages ----------
   // [nom, ('item', sprite d'objet) ou ('dex', n° Pokédex), lien avec l'effet]
   const OBJECTS = {
     pugio: ['Protéine', 'item', 'protein', 'Une vitamine : +1 de puissance.'],
-    'a-la-fosse': ['Relâcher chez le Prof. Chen', 'item', 'escape-rope', 'On confie un Pokémon au Professeur : il quitte l\'équipe.'],
+    'a-la-fosse': ['Envoyer au PC', 'item', 'pokemon-box-link', 'On range un Pokémon dans le PC : il quitte l\'équipe.'],
     convoi: ['Livraison du Poké Marché', 'item', 'tm-case', 'Le camion de livraison renouvelle un rayon entier.'],
     missio: ['Ceinture Force', 'item', 'focus-sash', 'Le Pokémon tient bon : il ne sera pas mis K.O.'],
-    'clef-de-la-fosse': ['Pass Boîte PC', 'item', 'town-map', 'On récupère un objet rangé dans la Boîte PC.'],
+    'clef-de-la-fosse': ['Accès au PC', 'item', 'storage-key', 'On récupère un objet rangé dans le PC.'],
     complices: ['Team Rocket', 'dex', 23, 'Les complices de la Team Rocket : à payer pour qu\'ils aident.'],
-    datura: ['Méga-Bracelet', 'item', 'mega-bracelet', 'Il double la puissance des effets du Pokémon.'],
+    datura: ['Cloche Écho', 'item', 'shell-bell', 'L\'écho répète les effets du Pokémon une seconde fois.'],
     dispense: ['Poké Ball', 'item', 'poke-ball', 'On rappelle le Pokémon et on en envoie un autre.'],
-    'lion-apprivoise': ['Orbe Vie', 'item', 'life-orb', 'Un grand boost de puissance (+2).'],
+    'lion-apprivoise': ['Bandeau Choix', 'item', 'choice-band', 'Un grand boost de puissance (+2).'],
     promotion: ['Pierre Évolution', 'item', 'fire-stone', 'Le Pokémon évolue au rang supérieur.'],
     repositionnement: ['Changement de Pokémon', 'item', 'ultra-ball', 'On échange les places de ses Pokémon dans l\'Arène.'],
-    reservation: ['Appât Ball', 'item', 'lure-ball', 'On attire un Pokémon précis dans l\'Arène.'],
-    'summa-rudis': ['Évoluroc', 'item', 'eviolite', 'Une protection : aucun objet ne peut cibler cette zone.'],
+    reservation: ['Rapide Ball', 'item', 'quick-ball', 'Ball ultra-rapide : on envoie un Pokémon précis dans l\'Arène.'],
+    'summa-rudis': ['Officier Jenny', 'dex', 58, 'La police de la ville (ici avec son Caninos) : personne n\'intervient dans cette zone.'],
     transfert: ['Échange Pokémon', 'item', 'master-ball', 'On échange un Pokémon avec son adversaire.'],
   };
   const EDICT_THEME = {
@@ -70,7 +71,8 @@
     rule("Édits? de l'Empereur", "Décret du Maître de la Ligue"), rule("de l'Empereur", "du Maître de la Ligue"), rule("à l'Empereur", "au Maître de la Ligue"),
     rule("l'Empereur", "le Maître de la Ligue"), rule('Empereur', 'Maître de la Ligue'),
     rule('Édits', 'Décrets'), rule('Édit', 'Décret'),
-    rule('la fosse', 'la Boîte PC'), rule('fosse', 'Boîte PC'),
+    rule('À LA FOSSE ?!?', 'Envoyer au PC'), rule('CLEF DE LA FOSSE', 'Accès au PC'),
+    rule('à la fosse', 'au PC'), rule('de la fosse', 'du PC'), rule('dans la fosse', 'dans le PC'), rule('la fosse', 'le PC'), rule('fosse', 'PC'),
     rule('le ludus', "l'équipe", 'gu'), rule('du ludus', "de l'équipe", 'gu'), rule('au ludus', "à l'équipe", 'gu'), rule('un ludus', 'une équipe', 'gu'), rule('ce ludus', 'cette équipe', 'gu'), rule('ludus', 'équipe', 'gu'),
     rule('gladiateurs?', 'Pokémon'),
     rule('lanistes', 'Dresseurs'), rule('laniste', 'Dresseur'),
