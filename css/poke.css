@@ -1,0 +1,110 @@
+/* Écran de choix du jeu + thème POKÉ-LUDUS */
+
+/* ---------- choix du jeu ---------- */
+#hub { flex-direction: column; align-items: center; justify-content: center; gap: 28px; padding: 20px; background: radial-gradient(ellipse at 50% 30%, #3a2a1c, #0d0907 75%); overflow: auto; }
+.hub-title { margin: 0; font: 700 clamp(22px, 3.4vw, 34px) var(--serif); color: var(--text); letter-spacing: .04em; }
+.hub-tiles { display: flex; gap: 26px; flex-wrap: wrap; justify-content: center; width: 100%; }
+.hub-tile { position: relative; width: min(92vw, 430px); min-height: 300px; border-radius: 20px; padding: 26px 22px; border: 3px solid transparent; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 14px; text-align: center; color: #fff; overflow: hidden; transition: transform .15s, box-shadow .15s, filter .15s; }
+.hub-tile:hover { transform: translateY(-5px) scale(1.02); filter: brightness(1.08); }
+.hub-logo { font: 900 clamp(40px, 7vw, 64px)/1 var(--serif); }
+.hub-sub { font-size: 16px; opacity: .92; }
+.hub-cta { margin-top: 8px; padding: 9px 26px; border-radius: 30px; font-weight: 800; letter-spacing: .05em; }
+.hub-ludus { background: linear-gradient(160deg, #6a4a22, #2b1d10 70%); border-color: var(--gold2); box-shadow: 0 10px 40px rgba(0, 0, 0, .6); }
+.hub-ludus .hub-logo { background: linear-gradient(#f4dc9a, #c18b2c 55%, #7a521a); -webkit-background-clip: text; background-clip: text; color: transparent; filter: drop-shadow(0 3px 0 rgba(0, 0, 0, .6)); letter-spacing: .06em; }
+.hub-ludus .hub-cta { background: linear-gradient(#e8bd55, #b98a2c); color: #2a1b08; }
+.hub-poke { background: linear-gradient(160deg, #3b6fd1, #1b2f73 70%); border-color: #ffcb05; box-shadow: 0 10px 40px rgba(20, 40, 120, .6); }
+.hub-poke .hub-logo { color: #ffcb05; -webkit-text-stroke: 3px #2a4c9b; paint-order: stroke fill; text-shadow: 0 4px 0 rgba(0, 0, 0, .35); font-family: "Trebuchet MS", "Segoe UI", sans-serif; letter-spacing: .02em; }
+.hub-poke .hub-cta { background: #ffcb05; color: #2a4c9b; }
+.pokeball { display: inline-block; width: 74px; height: 74px; border-radius: 50%; border: 5px solid #1b1b2a; background: linear-gradient(#e63946 0 46%, #1b1b2a 46% 54%, #f4f4f4 54%); position: relative; box-shadow: 0 5px 14px rgba(0, 0, 0, .45); }
+.pokeball::after { content: ''; position: absolute; left: 50%; top: 50%; width: 22px; height: 22px; margin: -11px 0 0 -11px; border-radius: 50%; background: #f4f4f4; border: 5px solid #1b1b2a; }
+
+/* ---------- thème Pokémon ---------- */
+body.theme-poke {
+  --bg: #0e1222; --bg2: #172043; --panel: #1e2a55; --panel2: #263466; --line: #3d55a0;
+  --gold: #ffcb05; --gold2: #3b6fd1; --text: #f4f7ff; --muted: #b3c0ec;
+  --crimson: #e63946; --serif: "Trebuchet MS", "Segoe UI", system-ui, sans-serif;
+}
+body.theme-poke #menu { background: radial-gradient(ellipse at 30% 20%, #2f4fa8, #0b1230 72%); }
+body.theme-poke .menu-poster { background-image: radial-gradient(circle at 50% 46%, #fff 0 9%, #1b1b2a 9% 12%, transparent 12%), linear-gradient(#e63946 0 49%, #1b1b2a 49% 51%, #f4f4f4 51%) !important; background-size: 100% 100%; background-position: center; background-repeat: no-repeat; border-radius: 0 50% 50% 0 / 0 40% 40% 0; box-shadow: inset -40px 0 60px -20px #0b1230; opacity: .92; }
+body.theme-poke .menu-logo { background: none; -webkit-background-clip: initial; background-clip: initial; color: #ffcb05; -webkit-text-stroke: 4px #2a4c9b; paint-order: stroke fill; text-shadow: 0 5px 0 rgba(0, 0, 0, .4); filter: none; letter-spacing: .01em; }
+body.theme-poke .btn { background: linear-gradient(#3b5cb8, #2a4496); border-color: #5576d8; }
+body.theme-poke .btn.primary { background: linear-gradient(#ffd83a, #f2b705); color: #1f2f6b; border-color: #fff3a0; box-shadow: 0 2px 12px rgba(255, 203, 5, .4); }
+body.theme-poke .btn.danger { background: linear-gradient(#e63946, #b0222d); border-color: #ff7b85; }
+body.theme-poke .btn.ghost { background: transparent; }
+body.theme-poke .modal { background: linear-gradient(#26336a, #1a2550); border-color: #ffcb05; }
+body.theme-poke .modal h2, body.theme-poke .modal h3 { color: #ffcb05; }
+body.theme-poke .seg button.on { background: #ffcb05; color: #1f2f6b; }
+body.theme-poke .tabs-row button.on, body.theme-poke #tabs button.on, body.theme-poke .libfilter button.on { background: #ffcb05; color: #1f2f6b; }
+body.theme-poke #game { background: radial-gradient(ellipse at 50% 0%, #223070, #0b1026 75%); }
+body.theme-poke #hud { background: linear-gradient(#e63946, #b8202c); border-bottom: 3px solid #ffcb05; }
+body.theme-poke .hud-logo { color: #ffcb05; -webkit-text-stroke: 1.2px #2a4c9b; paint-order: stroke fill; letter-spacing: .03em; }
+body.theme-poke .pchip, body.theme-poke .edict-chip, body.theme-poke .iconbtn, body.theme-poke .step { background: #101a44; }
+body.theme-poke .step.on { background: #ffcb05; color: #1f2f6b; }
+body.theme-poke #bottom { background: linear-gradient(#27346b, #1a2450); border-top: 3px solid #ffcb05; }
+body.theme-poke #promptbar { background: #1a2450; }
+body.theme-poke #promptbar.act { background: linear-gradient(#a8222d, #7d1721); border-bottom-color: #ffcb05; }
+body.theme-poke #promptbar .pt b { color: #ffe27a; }
+body.theme-poke .panel { border-color: #ffcb05; }
+body.theme-poke .edict-chip { border-color: #ffcb05; }
+body.theme-poke .edict-ico { font-size: 32px; line-height: 1; padding: 0 4px; }
+body.theme-poke .coin { background: #ffcb05; border: 1.5px solid #c99a00; box-shadow: none; color: #2a4c9b; font: 900 .72em/1.28em var(--sans); text-align: center; }
+body.theme-poke .coin::after { content: '₽'; }
+
+/* Poké Marché (le Forum) : sol carrelé bleu et blanc */
+body.theme-poke #forum { background: repeating-linear-gradient(90deg, #cfe3ff 0 46px, #bcd6ff 46px 48px), linear-gradient(#dcebff, #b8d2fb); }
+body.theme-poke .qrow { background: rgba(255, 255, 255, .72); border-top-color: var(--q); box-shadow: 0 3px 10px rgba(30, 60, 140, .25); }
+body.theme-poke .qlabel { text-shadow: none; filter: brightness(.62) saturate(1.5); }
+body.theme-poke .qlabel small { color: #24336e; }
+body.theme-poke .slot { border-color: rgba(30, 60, 140, .3); color: rgba(30, 60, 140, .35); }
+body.theme-poke .slot.locked { background: rgba(20, 40, 100, .45); border-color: rgba(20, 40, 100, .6); color: #dbe6ff; }
+body.theme-poke .arrowb { color: rgba(30, 60, 140, .55); }
+body.theme-poke .pile.empty { border-color: rgba(30, 60, 140, .35); }
+body.theme-poke .card .price, body.theme-poke .pile .cap { background: #fff7d0; color: #1f2f6b; border-color: #e0a800; }
+/* Arène (le Colisée) : terrain d'herbe et rond central */
+body.theme-poke #colisee { background: radial-gradient(circle at 50% 50%, transparent 0 56px, rgba(255, 255, 255, .85) 57px 60px, transparent 61px), linear-gradient(90deg, transparent 49.7%, rgba(255, 255, 255, .6) 49.7% 50.3%, transparent 50.3%), repeating-linear-gradient(90deg, #5fbf5a 0 70px, #53b04f 70px 140px); }
+body.theme-poke .lane { background: rgba(255, 255, 255, .22); border-color: rgba(255, 255, 255, .55); }
+body.theme-poke .lane.mid { background: rgba(255, 245, 160, .3); border-color: #ffcb05; }
+body.theme-poke .lmid { color: #0d3b12; text-shadow: 0 1px 0 rgba(255, 255, 255, .5); }
+body.theme-poke .vsb { background: #e63946; color: #fff; }
+body.theme-poke .gslot { background: rgba(255, 255, 255, .28); border-color: rgba(10, 70, 20, .5); color: rgba(10, 70, 20, .45); }
+body.theme-poke .gslot.tac { background: rgba(60, 110, 220, .15); border-color: rgba(40, 80, 190, .6); }
+body.theme-poke .fossecol .ft { color: #0d3b12; }
+body.theme-poke #preview { background: rgba(10, 16, 44, .96); border-color: #ffcb05; }
+body.theme-poke #logdrawer { background: #131b3f; border-left-color: #ffcb05; }
+body.theme-poke .ld-head { color: #ffcb05; }
+body.theme-poke .ll.sep { color: #ffcb05; border-bottom-color: #3b6fd1; }
+body.theme-poke .banner { color: #ffcb05; -webkit-text-stroke: 2px #2a4c9b; paint-order: stroke fill; }
+
+/* ---------- cartes Pokémon dessinées en HTML (tailles relatives à la largeur de la carte) ---------- */
+body.theme-poke .card { background: #f2c94c; }
+body.theme-poke .card.edict { aspect-ratio: 820 / 586; }
+.pk { position: absolute; inset: 0; border-radius: inherit; overflow: hidden; display: flex; flex-direction: column; gap: 2cqw; padding: 4.2cqw; box-sizing: border-box; border: 2cqw solid #f2c94c; background: linear-gradient(160deg, var(--c1, #3b6fd1), var(--c2, #1b2f73)); color: #1b1b2a; font-family: "Trebuchet MS", "Segoe UI", system-ui, sans-serif; text-align: left; }
+.pk-top { display: flex; align-items: center; justify-content: space-between; gap: 2cqw; min-height: 11cqw; }
+.pk-rank { font-size: 5.2cqw; font-weight: 800; padding: .6cqw 3cqw; border-radius: 10cqw; background: #fff; color: #333; text-transform: uppercase; letter-spacing: .02em; }
+.pk-rank.st { background: #2cbfe2; color: #fff; } .pk-rank.ba { background: #e8e8e8; } .pk-rank.ev { background: #36b863; color: #fff; } .pk-rank.le { background: linear-gradient(#b27bff, #7a49a8); color: #fff; } .pk-rank.ob { background: #ff8a2a; color: #fff; }
+.pk-adv { color: #ffd23a; font-size: 9cqw; line-height: 1; text-shadow: 0 0 2px #7a4b00, 0 1px 1px #000; margin-left: auto; }
+.pk-pw { min-width: 11.5cqw; height: 11.5cqw; border-radius: 50%; background: #e63946; border: .8cqw solid #fff; color: #fff; font-weight: 900; font-size: 7.4cqw; display: grid; place-items: center; box-shadow: 0 .6cqw 1.4cqw rgba(0, 0, 0, .4); }
+.pk-pw.pk-price { background: #ffcb05; color: #2a4c9b; font-size: 5.8cqw; padding: 0 1.6cqw; border-radius: 6cqw; width: auto; }
+.pk-art { flex: 1.25; min-height: 0; border-radius: 3cqw; background: radial-gradient(circle at 50% 55%, #ffffff 0 18%, rgba(255, 255, 255, .55) 45%, rgba(255, 255, 255, .15) 100%); border: .7cqw solid rgba(0, 0, 0, .25); display: grid; place-items: center; overflow: hidden; }
+.pk-art img { width: 92%; height: 92%; object-fit: contain; filter: drop-shadow(0 1cqw 1cqw rgba(0, 0, 0, .35)); }
+.pk-art img.pk-item { width: 52%; height: auto; image-rendering: pixelated; filter: drop-shadow(0 1cqw .5cqw rgba(0, 0, 0, .35)); }
+.pk-name { font-weight: 900; font-size: 9cqw; line-height: 1.05; text-align: center; background: rgba(255, 255, 255, .88); border-radius: 3cqw; padding: 1.2cqw 2cqw; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.pk-types { display: flex; justify-content: center; gap: 2cqw; margin-top: -.5cqw; }
+.pk-types i { font-style: normal; font-weight: 800; font-size: 4.6cqw; color: #fff; padding: .4cqw 3cqw; border-radius: 10cqw; border: .5cqw solid rgba(255, 255, 255, .8); text-shadow: 0 .3cqw .3cqw rgba(0, 0, 0, .5); }
+.pk-txt { flex: .95; min-height: 0; background: #fffbea; border-radius: 3cqw; padding: 2.6cqw 3cqw; font-size: 5.4cqw; line-height: 1.22; overflow: hidden; border: .6cqw solid rgba(0, 0, 0, .15); display: flex; align-items: center; }
+.pk-txt i { font-style: italic; color: #444; }
+.pk-ic { color: #c1352c; }
+.pk-t { --c1: #3b6fd1; --c2: #1b2f73; }
+.pk-t .pk-art { background: radial-gradient(circle at 50% 55%, #fff 0 15%, #ffe9a0 60%, #ffd05a 100%); }
+.pk-e { --c1: #3b2a8f; --c2: #1b1450; padding: 2.6cqw; gap: 1.6cqw; border-width: 1.2cqw; }
+.pk-etitle { font-weight: 900; font-size: 6.4cqw; color: #ffcb05; text-align: center; letter-spacing: .02em; -webkit-text-stroke: .3cqw #1b1450; }
+.pk-egrid { flex: 1; display: grid; grid-template-columns: 1fr 1fr; gap: 1.4cqw; min-height: 0; }
+.pk-egrid > div { background: #fffbea; border-radius: 2cqw; padding: 1.6cqw 2cqw; font-size: 3cqw; line-height: 1.18; overflow: hidden; }
+.pk-egrid b:first-child { display: block; color: #2a4c9b; font-size: 3.7cqw; margin-bottom: .6cqw; }
+.pk-back { position: absolute; inset: 0; border-radius: inherit; border: 2cqw solid #f2c94c; box-sizing: border-box; display: grid; place-items: center; }
+.pk-back-g { background: radial-gradient(circle at 50% 50%, #fff 0 8%, #1b1b2a 8% 11.5%, transparent 11.5%), linear-gradient(#e63946 0 49%, #1b1b2a 49% 51%, #f4f4f4 51%); }
+.pk-back-t { background: radial-gradient(circle at 50% 50%, rgba(255, 255, 255, .25) 0 30%, transparent 31%), linear-gradient(160deg, #3b6fd1, #1b2f73); }
+.pk-back-t::after { content: '🎒'; font-size: 26cqw; filter: drop-shadow(0 1cqw 1cqw rgba(0, 0, 0, .4)); }
+.pk-back-e { background: linear-gradient(160deg, #3b2a8f, #1b1450); }
+.pk-back-e::after { content: '★'; font-size: 30cqw; color: #ffcb05; }
+body.theme-poke .card.pop, body.theme-poke .card { box-shadow: 0 2px 7px rgba(0, 0, 0, .55); }

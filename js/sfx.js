@@ -80,6 +80,13 @@
   };
   // cor / tuba romain (cornu) : dents de scie filtrées, léger vibrato
   V.horn = (c, o, t, v = 1, f = 130.8, dur = 0.6) => {
+    if (S.theme === 'poke') {                       // thème Pokémon : sons « 8 bits » (ondes carrées)
+      const g = env(c, o, t, 0.13 * v, 0.01, dur);
+      const s = c.createOscillator(); s.type = 'square'; s.frequency.setValueAtTime(f * 2, t);
+      s.frequency.setValueAtTime(f * 3, t + Math.min(0.08, dur / 3)); s.frequency.setValueAtTime(f * 4, t + Math.min(0.16, dur / 2));
+      s.connect(g); s.start(t); s.stop(t + dur + 0.1);
+      return;
+    }
     const out = c.createGain();
     out.gain.setValueAtTime(0.0001, t);
     out.gain.exponentialRampToValueAtTime(0.26 * v + 0.0002, t + 0.07);

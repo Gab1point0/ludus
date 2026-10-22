@@ -79,3 +79,7 @@ Le livret laisse quelques cas ouverts ; voici comment ils sont codÃ©s (faciles Ã
 Tous les sons sont synthÃ©tisÃ©s par le navigateur (aucun fichier audio) : cors romains, tambours de guerre, Ã©pÃ©es qui s'entrechoquent,
 foule de l'arÃ¨ne, gong de l'Empereur, piÃ¨ces, fanfare de victoireâ€¦ Le bouton ðŸ”Š (en haut, ou sur le menu principal) les coupe ;
 le menu â˜° permet de rÃ©gler le volume et l'ambiance de l'arÃ¨ne.
+
+## Poké-Ludus (deuxième jeu)
+Le menu d'accueil propose **LUDUS** ou **POKÉ-LUDUS**, une version Pokémon (projet de fans, non officiel) : les gladiateurs deviennent des Pokémon (ex. Métamorph pour PEGMA, Smogogo pour VENEFICUS, Mewtwo pour DIMACHERUS), les tactiques des objets ou personnages (Ceinture Force pour MISSIO, Méga-Bracelet pour DATURA, Team Rocket pour COMPLICES…), le Forum un Poké Marché, le Colisée une Arène, les Édits des décrets du Maître de la Ligue. Les règles sont identiques. Le thème est dans `js/theme-poke.js` et `css/poke.css`. Les images sont chargées depuis PokeAPI/sprites (connexion Internet nécessaire pour les voir).
+

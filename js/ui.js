@@ -20,15 +20,18 @@
   };
 
   // ============================== petites briques HTML ==============================
+  const TH = () => (root.LudusTheme && root.LudusTheme.active ? root.LudusTheme : null);
+  // visuel d'une carte : image du PDF (LUDUS) ou carte dessinée en HTML (autres thèmes)
+  function faceImg(defId, big) { const t = TH(); if (t) return t.face(defId); const d = CARDS[defId]; return `<img src="assets/cards/${d.img}${big ? '' : '-sm'}.webp" alt="${esc(d.name)}" draggable="false">`; }
+  function edictImg(id, big) { const t = TH(); if (t) return t.edictFace(id); return `<img src="assets/edicts/${id}${big ? '' : '-sm'}.webp" alt="" draggable="false">`; }
+  function backImg(kind) { const t = TH(); if (t) return t.backFace(kind); return `<img src="assets/backs/${kind}.webp" alt="Dos de carte" draggable="false">`; }
+  const brand = () => (root.LudusTheme ? root.LudusTheme.brand : 'LUDUS');
   function cardHTML(defId, o) {
     o = o || {};
-    const d = defId ? CARDS[defId] : null;
-    let src, alt, data;
-    if (o.back) { src = `assets/backs/${o.back}.webp`; alt = 'Dos de carte'; data = `data-back="${o.back}"`; }
-    else { src = `assets/cards/${d.img}${o.big ? '' : '-sm'}.webp`; alt = d.name; data = `data-def="${defId}"`; }
+    const data = o.back ? `data-back="${o.back}"` : `data-def="${defId}"`;
     const uid = o.uid ? ` data-uid="${o.uid}"` : '';
     const style = o.w ? ` style="--w:${o.w}"` : '';
-    return `<div class="card ${o.cls || ''}" ${data}${uid}${style} ${o.attrs || ''}><img src="${src}" alt="${esc(alt)}" draggable="false">${o.inner || ''}</div>`;
+    return `<div class="card ${o.cls || ''}" ${data}${uid}${style} ${o.attrs || ''}>${o.back ? backImg(o.back) : faceImg(defId, o.big)}${o.inner || ''}</div>`;
   }
   const pHex = color => COLOR_HEX[color] || '#999';
   function phaseLabel(v) {
@@ -123,7 +126,7 @@
   }
 
   function renderWaiting() {
-    $('#hud').innerHTML = '<div class="hud-logo">LUDUS</div><div class="hud-round"><div class="rt"><span class="spinner"></span> En attente de l\'hôte…</div></div>';
+    $('#hud').innerHTML = `<div class="hud-logo">${brand()}</div><div class="hud-round"><div class="rt"><span class="spinner"></span> En attente de l'hôte…</div></div>`;
   }
 
   // ---------- HUD ----------
@@ -138,10 +141,10 @@
     };
     const steps = [1, 2, 3, 4].map(i => `<span class="step ${i === v.emperor ? 'on' : i < v.emperor ? 'past' : ''}">${i}</span>`).join('');
     let edict = '<div class="edict-chip" style="opacity:.5"><div class="ex">Aucun édit pour l\'instant</div></div>';
-    if (v.edict) edict = `<div class="edict-chip" data-edict="${v.edict.def}"><img src="assets/edicts/${v.edict.def}-sm.webp" alt=""><div><div class="et">Édit : ${esc(v.edict.name)}</div><div class="ex">${esc(v.edict.text)}</div></div></div>`;
+    if (v.edict) edict = `<div class="edict-chip" data-edict="${v.edict.def}">${TH() ? `<span class="edict-ico">${TH().edictIcon(v.edict.def)}</span>` : `<img src="assets/edicts/${v.edict.def}-sm.webp" alt="">`}<div><div class="et">Édit : ${esc(v.edict.name)}</div><div class="ex">${esc(v.edict.text)}</div></div></div>`;
     const variant = v.variant ? ' · variante Empereur' : '';
     setHTML('hud', $('#hud'), `
-      <div class="hud-logo">LUDUS</div>
+      <div class="hud-logo">${brand()}</div>
       <div class="hud-round"><div class="rt">Manche ${v.round || '–'} / 4${v.extra ? ` · combat supplémentaire ${v.extra}` : ''}${variant}</div><div class="ph">${phaseLabel(v)}</div></div>
       <div class="steps" title="Marche de l'Empereur">${steps}</div>
       ${edict}
@@ -250,7 +253,7 @@
         inner = cardHTML(g.def, { uid: g.uid, big, cls: `${cls} ${g.faceDown ? 'dim' : ''}`, inner: badge + shield + skull + (g.faceDown ? '<span class="chip-deniers mid">face cachée</span>' : '') });
       }
       const dir = seat === me ? 1 : -1;
-      const renf = (zn.renforts || []).map((r, i) => `<div class="card" data-def="${r.def}" style="top:${dir * (9 + i * 9)}px;left:${(i % 2 ? 4 : -4)}px;z-index:0"><img src="assets/cards/${CARDS[r.def].img}-sm.webp" alt=""></div>`).join('');
+      const renf = (zn.renforts || []).map((r, i) => `<div class="card" data-def="${r.def}" style="top:${dir * (9 + i * 9)}px;left:${(i % 2 ? 4 : -4)}px;z-index:0">${faceImg(r.def)}</div>`).join('');
       const wrapper = zn.renforts && zn.renforts.length ? `<div class="renfwrap" title="${zn.renforts.length} gladiateur(s) en renfort">${renf}</div>` : '';
       return `<div class="gslot" data-z="${z}" data-seat="${seat}">${wrapper}${inner}</div>`;
     };
@@ -357,15 +360,16 @@
     const box = $('#preview'); if (!box) return;
     const def = el.dataset.def, back = el.dataset.back, ed = el.dataset.edict;
     let html = '', land = false;
+    const big = (inner, cls, ratio) => TH() ? `<div class="card ${cls}" style="--w:100%">${inner}</div>` : inner.replace('<img ', `<img style="aspect-ratio:${ratio}" `);
     if (ed) {
-      html = `<img src="assets/edicts/${ed}.webp" alt="" style="aspect-ratio:820/586"><div class="cap"><b>${esc(EDICTS[ed].name)}</b><br>Édit de l'Empereur (la ligne de la manche en cours s'applique)</div>`; land = true;
+      html = `${big(edictImg(ed, true), 'edict', '820/586')}<div class="cap"><b>${esc(EDICTS[ed].name)}</b><br>Édit de l'Empereur (la ligne de la manche en cours s'applique)</div>`; land = true;
     } else if (back) {
-      html = `<img src="assets/backs/${back}.webp" alt="" style="aspect-ratio:520/727"><div class="cap"><b>${back === 'tactic' ? 'Tactique' : 'Gladiateur'}</b><br>Face cachée</div>`;
+      html = `${big(backImg(back), '', '520/727')}<div class="cap"><b>${back === 'tactic' ? 'Tactique' : 'Gladiateur'}</b><br>Face cachée</div>`;
     } else if (def) {
       const d = CARDS[def];
       let meta = d.type === 'tactic' ? `Tactique · ${d.price} denier(s)` : `${RANKS[d.rank].label} · puissance ${d.power}${d.avantage ? ' (Avantage)' : ''}`;
       if (d.advanced) meta += ' · carte avancée';
-      html = `<img src="assets/cards/${d.img}.webp" alt="" style="aspect-ratio:520/727"><div class="cap"><b>${esc(d.name)}</b><br>${meta}</div>`;
+      html = `${big(faceImg(def, true), '', '520/727')}<div class="cap"><b>${esc(d.name)}</b><br>${meta}</div>`;
     } else return;
     box.className = 'show' + (land ? ' land' : '');
     box.innerHTML = html;
@@ -437,7 +441,7 @@
     } else if (p.mode === 'quarter') {
       html = `<h2>${esc(p.title)}</h2><div class="optlist">${p.options.map(o => `<button class="btn" style="border-left:6px solid ${Q_COLOR[o.id]}" data-act="opt" data-opt="${o.id}">${esc(o.label)} — ${v.forum[o.id].slots.filter(s => s.card).length} carte(s) à renouveler</button>`).join('')}</div>`;
     } else if (p.mode === 'order') {
-      html = `<h2>${esc(p.title)}</h2><div class="cardgrid">${p.options.map(o => `<div><div class="card can" data-def="${o.def}" data-act="opt" data-opt="${o.id}"><img src="assets/cards/${CARDS[o.def].img}-sm.webp" alt=""></div><div class="cap2">${esc(o.label)}</div></div>`).join('')}</div>`;
+      html = `<h2>${esc(p.title)}</h2><div class="cardgrid">${p.options.map(o => `<div><div class="card can" data-def="${o.def}" data-act="opt" data-opt="${o.id}">${faceImg(o.def)}</div><div class="cap2">${esc(o.label)}</div></div>`).join('')}</div>`;
     } else {
       light = true;
       html = `<h2>${esc(p.title)}</h2><div class="optlist">${p.options.map(o => `<button class="btn" data-act="opt" data-opt="${o.id}">${esc(o.label)}</button>`).join('')}</div>`;
@@ -533,7 +537,7 @@
     let body = '';
     if (tab === 'rules') body = `<div class="help-body">${RULES_HTML}</div>`;
     else if (tab === 'aide') body = `<div class="help-imgs"><img src="assets/cards/aide-recto.webp" alt="Aide de jeu"><img src="assets/backs/aide-verso.webp" alt="Aide de jeu (verso)"></div>`;
-    else if (tab === 'edicts') body = `<div class="cardgrid view" style="max-width:900px">${Object.keys(EDICTS).map(id => `<div class="libcard"><div class="card edict" data-edict="${id}" style="--w:420px"><img src="assets/edicts/${id}.webp" alt=""></div></div>`).join('')}</div>`;
+    else if (tab === 'edicts') body = `<div class="cardgrid view" style="max-width:900px">${Object.keys(EDICTS).map(id => `<div class="libcard"><div class="card edict" data-edict="${id}" style="--w:420px">${edictImg(id, true)}</div></div>`).join('')}</div>`;
     else {
       const f = UI.libFilter || 'all';
       const list = Object.values(CARDS).filter(d => !d.start || d.id.endsWith('rouge'))
@@ -541,9 +545,9 @@
       const order = d => d.type === 'tactic' ? 10 : (RANKS[d.rank].order);
       list.sort((a, b) => order(a) - order(b) || a.name.localeCompare(b.name));
       body = `<div class="libfilter">${[['all', 'Tout'], ['gladiator', 'Gladiateurs'], ['tactic', 'Tactiques'], ['depart', 'Départ'], ['debutant', 'Débutants'], ['aguerri', 'Aguerris'], ['legendaire', 'Légendaires']].map(([k, t]) => `<button class="${f === k ? 'on' : ''}" data-act="libf" data-f="${k}">${t}</button>`).join('')}</div>
-        <div class="cardgrid view">${list.map(d => `<div class="libcard"><div class="card" data-def="${d.id}" style="--w:150px"><img src="assets/cards/${d.img}-sm.webp" alt="${esc(d.name)}"></div><span class="cc">${d.start ? d.copies + ' par couleur' : '×' + d.copies}${d.advanced ? ' · avancée' : ''}</span></div>`).join('')}</div>`;
+        <div class="cardgrid view">${list.map(d => `<div class="libcard"><div class="card" data-def="${d.id}" style="--w:150px">${faceImg(d.id)}</div><span class="cc">${d.start ? d.copies + ' par couleur' : '×' + d.copies}${d.advanced ? ' · avancée' : ''}</span></div>`).join('')}</div>`;
     }
-    const html = `<h2>📖 Règles et cartes</h2><div class="tabs-row">${[['rules', 'Résumé des règles'], ['cards', 'Toutes les cartes'], ['edicts', 'Édits de l\'Empereur'], ['aide', 'Aide de jeu']].map(([k, t]) => `<button class="${tab === k ? 'on' : ''}" data-act="helptab" data-t="${k}">${t}</button>`).join('')}</div>${body}<div class="row end"><button class="btn" data-act="close">Fermer</button></div>`;
+    const html = `<h2>📖 Règles et cartes</h2><div class="tabs-row">${[['rules', 'Résumé des règles'], ['cards', 'Toutes les cartes'], ['edicts', 'Édits de l\'Empereur'], ['aide', 'Aide de jeu']].filter(([k]) => !(k === 'aide' && TH())).map(([k, t]) => `<button class="${tab === k ? 'on' : ''}" data-act="helptab" data-t="${k}">${t}</button>`).join('')}</div>${body}<div class="row end"><button class="btn" data-act="close">Fermer</button></div>`;
     const ex = $('#overlay-root .modal-backdrop[data-mid="help"]');
     if (ex) { ex.querySelector('.modal').innerHTML = html; return; }
     openModal(html, { id: 'help', style: 'width:min(96vw,1000px)' });
@@ -569,7 +573,7 @@
         // sur écran tactile (pas de survol pour voir la carte) : on demande confirmation avant d'acheter
         const o = p && p.options ? p.options.find(x => x.id === el.dataset.opt) : null;
         if (o && window.matchMedia && window.matchMedia('(hover: none)').matches) {
-          const img = o.def ? `<div class="card" style="--w:210px" data-def="${o.def}"><img src="assets/cards/${CARDS[o.def].img}.webp" alt=""></div>` : '<p>Le gladiateur du dessus de la réserve (vous le découvrirez après l\'achat).</p>';
+          const img = o.def ? `<div class="card" style="--w:210px" data-def="${o.def}">${faceImg(o.def, true)}</div>` : '<p>Le gladiateur du dessus de la réserve (vous le découvrirez après l\'achat).</p>';
           openModal(`<h2>Acheter ${o.def ? esc(CARDS[o.def].name) : 'le dessus de la réserve'} ?</h2><div class="row center">${img}</div><p style="text-align:center">Prix : ${coin} <b>${o.price}</b></p><div class="row center"><button class="btn primary" data-act="play-ok" data-opt="${o.id}">Acheter</button><button class="btn" data-act="close">Annuler</button></div>`, { id: 'confirm', light: true });
         } else answerOpt(el.dataset.opt);
         break;
@@ -582,7 +586,7 @@
           const o = p.options.find(x => x.type === 'play' && x.uid === uid);
           if (o) {
             const d = CARDS[o.def];
-            openModal(`<h2>Utiliser ${esc(d.name)} ?</h2><div class="row center"><div class="card" style="--w:170px" data-def="${o.def}"><img src="assets/cards/${d.img}-sm.webp" alt=""></div></div><p style="text-align:center">La carte sera défaussée après application de son effet.</p><div class="row center"><button class="btn primary" data-act="play-ok" data-opt="${o.id}">Utiliser</button><button class="btn" data-act="close">Annuler</button></div>`, { id: 'confirm', light: true });
+            openModal(`<h2>Utiliser ${esc(d.name)} ?</h2><div class="row center"><div class="card" style="--w:170px" data-def="${o.def}">${faceImg(o.def)}</div></div><p style="text-align:center">La carte sera défaussée après application de son effet.</p><div class="row center"><button class="btn primary" data-act="play-ok" data-opt="${o.id}">Utiliser</button><button class="btn" data-act="close">Annuler</button></div>`, { id: 'confirm', light: true });
           }
         } else if (p.mode === 'place') { UI.selected = UI.selected === uid ? null : uid; UI.tab = 'colisee'; render(); }
         break;

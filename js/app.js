@@ -122,7 +122,7 @@
       onGuest(conn) {
         // reconnexion pendant une partie en cours
         if (App.session && App.session.mode === 'host' && !App.session.finished) {
-          conn.on('data', msg => { if (msg && msg.t === 'hello') { conn.send({ t: 'start' }); App.session.attach(conn); App.conn = conn; } });
+          conn.on('data', msg => { if (msg && msg.t === 'hello') { conn.send({ t: 'start', theme: root.LudusTheme.name }); App.session.attach(conn); App.conn = conn; } });
           return;
         }
         if (App.conn && App.conn.open) { conn.on('open', () => conn.close()); return; }
@@ -152,7 +152,7 @@
     App.lastCfg = cfg;
     const sess = new LocalSession(cfg);
     App.session = sess;
-    App.conn.send({ t: 'start' });
+    App.conn.send({ t: 'start', theme: root.LudusTheme.name });
     sess.attach(App.conn);
     show('game'); UI.attach(sess); sess.start();
   }
@@ -172,6 +172,7 @@
         setStatus('<p>✅ Connecté ! <span class="spinner"></span> En attente du lancement par l\'hôte…</p>');
         conn.on('data', msg => {
           if (msg && msg.t === 'start') {
+            root.LudusTheme.set(msg.theme === 'poke' ? 'poke' : 'ludus');
             UI.closeAll();
             if (App.session) App.session.stop();
             const sess = new GuestSession(conn);
@@ -194,7 +195,7 @@
       App.session.stop();
       const sess = new LocalSession(cfg);
       App.session = sess;
-      App.conn.send({ t: 'start' });
+      App.conn.send({ t: 'start', theme: root.LudusTheme.name });
       sess.attach(App.conn);
       UI.attach(sess); sess.start();
       return;
@@ -204,6 +205,12 @@
 
   // ---------- événements du menu ----------
   function onClick(e) {
+    const hub = e.target.closest('[data-hub],[data-hub-back]');
+    if (hub) {
+      if (hub.dataset.hub) { root.LudusTheme.set(hub.dataset.hub); show('menu'); }
+      else { root.LudusTheme.set('ludus'); show('hub'); }
+      return;
+    }
     const el = e.target.closest('[data-action],[data-app],.seg button');
     if (!el) return;
     if (el.matches('.seg button')) {
@@ -222,7 +229,7 @@
       case 'go-ai': {
         readSetup(modal);
         UI.closeModal(modal);
-        startLocal(cfgFrom('ai', [App.settings.name || 'Laniste', 'Ordinateur']));
+        startLocal(cfgFrom('ai', [App.settings.name || root.LudusTheme.trainerName, root.LudusTheme.aiName]));
         break;
       }
       case 'go-hotseat': {
