@@ -15,7 +15,7 @@
     constructor(seat, ai, getSpeed) { this.seat = seat; this.ai = ai; this.getSpeed = getSpeed; this.timer = null; }
     delayFor(p) {
       if (p.kind === 'ack') return 250;
-      if (p.kind === 'choice' && (p.mode === 'prep' || p.mode === 'place')) return 1000;
+      if (p.kind === 'choice' && (p.mode === 'prep' || p.mode === 'place')) return 800;
       if (p.kind === 'choice' && p.mode === 'toss') return 600;
       return 650;
     }

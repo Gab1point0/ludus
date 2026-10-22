@@ -23,6 +23,7 @@ function countCards(g) {
 (async () => {
   const stats = { wins: [0, 0], rounds: {}, extra: 0, reasons: {}, errors: 0, byFirst: [0, 0] };
   let totalLines = 0, maxExtra = 0; const cov = {};
+  const left = [[0, 0, 0, 0], [0, 0, 0, 0]], leftN = [[0, 0, 0, 0], [0, 0, 0, 0]];
   for (let i = 0; i < N; i++) {
     const g = new Game({ seed: 1000 + i, advanced: ADV, variantEmperor: VAR, names: ['A', 'B'], colors: ['rouge', 'bleu'], speed: 0 });
     const chaos = () => ({
@@ -54,6 +55,8 @@ function countCards(g) {
     });
     const mkAI = lvl => lvl === 'chaos' ? chaos() : lvl === 'idle' ? idle() : AI.create(lvl, g.rand.bind(g));
     const ais = [mkAI(L0), mkAI(L1)];
+    const origPrep = g.preparation.bind(g);
+    g.preparation = async () => { await origPrep(); for (const s of [0, 1]) { const r = Math.min(g.s.round, 4) - 1; left[s][r] += g.s.players[s].deniers; leftN[s][r]++; } };
     let bad = null;
     const check = (where) => {
       if (bad) return;
@@ -97,4 +100,6 @@ function countCards(g) {
   console.log('Fins :', stats.reasons);
   console.log('Lignes de journal / partie :', Math.round(totalLines / N));
   if (process.env.COV) console.log('Couverture :', cov);
+  const fmt = s => left[s].map((x, r) => (x / Math.max(1, leftN[s][r])).toFixed(1)).join(' / ');
+  console.log('Deniers restants après le Forum (manches 1/2/3/4) — J0 :', fmt(0), '| J1 :', fmt(1));
 })();

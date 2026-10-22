@@ -27,6 +27,15 @@ Elle peut être bloquée sur certains réseaux très protégés (wifi d'établis
 dans ce cas, essayez en 4G/5G. Si la connexion est perdue, l'ami peut rejoindre avec le même code et la partie reprend.
 Le créateur de la partie doit garder son onglet ouvert pendant toute la partie.
 
+## L'ordinateur adverse
+* **Il dépense toujours son argent au Forum** : après la phase d'achat, il lui reste en moyenne 0,1 denier, à tous les niveaux.
+* Il a été **entraîné par auto-jeu** (des dizaines de milliers de parties ordinateur contre ordinateur, sur tous les cœurs du PC) :
+  valeur de chaque gladiateur selon le contenu du ludus (PEGMA, SAGITTARIUS, HOPLOMAQUE…), valeur de chaque tactique, poids de l'argent selon la manche,
+  choix des tactiques à poser au Colisée, utilisation des cartes ⚙.
+* **Trois niveaux** : *Difficile* = réglages entraînés ; *Normal* = réglages à moitié oubliés + un peu de hasard (le Difficile le bat ≈ 65 % du temps) ;
+  *Facile* = réglages d'origine + beaucoup de hasard + peu de tactiques (le Difficile le bat ≈ 84 % du temps).
+* Pour ré-entraîner : `node tests/train.js 60 64 800` puis `node tests/apply-trained.js` ; pour recaler les niveaux : `node tests/calibrate.js 3000`.
+
 ## Utilisation en jeu
 * **Survolez une carte** pour la voir en grand.
 * **Préparation** : cliquez une carte du Forum pour l'acheter, ou une carte ⚙ de votre main pour l'utiliser.
