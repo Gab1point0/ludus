@@ -45,7 +45,7 @@
     convoi: ['Livraison du Poké Marché', 'item', 'tm-case', 'Le camion de livraison renouvelle un rayon entier.'],
     missio: ['Ceinture Force', 'item', 'focus-sash', 'Le Pokémon tient bon : il ne sera pas mis K.O.'],
     'clef-de-la-fosse': ['Accès au PC', 'item', 'storage-key', 'On récupère un objet rangé dans le PC.'],
-    complices: ['Team Rocket', 'dex', 23, 'Les complices de la Team Rocket : à payer pour qu\'ils aident.'],
+    complices: ['Team Rocket', 'img', 'assets/poke/items/team-rocket.svg','Les complices de la Team Rocket : à payer pour qu\'ils aident.'],
     datura: ['Cloche Écho', 'item', 'shell-bell', 'L\'écho répète les effets du Pokémon une seconde fois.'],
     dispense: ['Poké Ball', 'item', 'poke-ball', 'On rappelle le Pokémon et on en envoie un autre.'],
     'lion-apprivoise': ['Bandeau Choix', 'item', 'choice-band', 'Un grand boost de puissance (+2).'],
@@ -115,7 +115,7 @@
         <div class="pk-txt"><div>${txt}</div></div></div>`;
     }
     const b = baseOf(defId), o = OBJECTS[b]; if (!o) return `<div class="pk pk-t"><div class="pk-name">${esc(d.name)}</div></div>`;
-    const art = o[1] === 'dex' ? artImg(ART(o[2]), o[0]) : artImg(ITEM(o[2]), o[0], 'pk-item');
+    const art = o[1] === 'dex' ? artImg(ART(o[2]), o[0]) : o[1] === 'img' ? artImg(o[2], o[0], 'pk-logo') : artImg(ITEM(o[2]), o[0], 'pk-item');
     return `<div class="pk pk-t">
       <div class="pk-top"><span class="pk-rank ob">Objet${d.prep ? ' · ⚙' : ''}</span><span class="pk-pw pk-price" title="Prix">₽${d.price}</span></div>
       <div class="pk-art">${art}</div>

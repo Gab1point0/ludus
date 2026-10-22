@@ -1,0 +1,6 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 200 200">
+  <!-- Logo « R » de la Team Rocket (dessin de fan) -->
+  <rect x="6" y="6" width="188" height="188" rx="26" fill="#f6f3ea" stroke="#1b1b2a" stroke-width="6"/>
+  <path d="M52 168 L52 36 H112 C148 36 164 54 164 80 C164 102 152 116 132 122 L168 168 H134 L104 128 H84 V168 Z M84 64 V102 H110 C126 102 132 94 132 83 C132 72 126 64 110 64 Z" fill="#d6212c" fill-rule="evenodd" stroke="#8f0f19" stroke-width="3" stroke-linejoin="round"/>
+  <path d="M30 104 L78 84 L72 100 L120 80" fill="none" stroke="#1b1b2a" stroke-width="9" stroke-linecap="round" stroke-linejoin="round" opacity=".92"/>
+</svg>
