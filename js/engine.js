@@ -136,6 +136,7 @@
       this._rng = mulberry32(this.seed);
       this.ctrl = [null, null];
       this.listeners = new Set();
+      this.history = [];
       this.logs = []; this._logN = 0; this._uid = 0; this._pid = 0;
       this.aborted = false;
       this.init();
@@ -208,6 +209,7 @@
         }
       } finally { this.s.prompts[seat] = null; }
       if (ans === undefined) ans = this.defaultAnswer(prompt);
+      this.history.push({ seat, kind: prompt.kind, mode: prompt.mode, value: ans });   // pour « annuler le coup précédent » (rejeu déterministe)
       this.emit();
       return ans;
     }

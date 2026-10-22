@@ -95,6 +95,10 @@
     if (!v) { renderWaiting(); return; }
     UI.view = v;
     if (pass != null) return;               // écran de passage : on ne dévoile rien
+    if (v.undoStamp !== UI.undoStamp) {     // un coup vient d'être annulé : on repart d'un affichage neuf
+      UI.undoStamp = v.undoStamp; UI.logN = -1; UI.logLen = -1; UI.html = {}; UI.selected = null; UI.promptPid = null; UI.lastPromptId = null;
+      closeAll(m => ['prompt', 'confirm'].includes(m.dataset.mid));
+    }
     if (root.LudusSfx) root.LudusSfx.onView(v);
     layout();
     // changement de phase -> onglet automatique + bannière
@@ -121,6 +125,7 @@
     renderPromptBar(v, p);
     renderLog(v);
     renderPromptModal(v, p);
+    renderUndo(v);
     renderEnd(v);
     renderLost(s);
   }
@@ -151,6 +156,7 @@
       <div class="hud-spacer"></div>
       ${chip(me, 'me')}${chip(op, 'opp')}
       <div class="hud-btns">
+        <button class="iconbtn" data-act="undo" title="Annuler mon dernier coup (l'adversaire doit accepter)" ${v.canUndo ? '' : 'disabled'}>↩</button>
         <button class="iconbtn" data-act="sound" title="Sons : activer / couper">${root.LudusSfx && root.LudusSfx.S.enabled ? '🔊' : '🔇'}</button>
         <button class="iconbtn" data-act="log" title="Journal de la partie">📜</button>
         <button class="iconbtn" data-act="help" title="Règles et cartes">📖</button>
@@ -482,6 +488,28 @@
       <label class="check"><input type="checkbox" id="opt-amb" ${root.LudusSfx.S.ambient ? 'checked' : ''}><span>Ambiance de l'arène<small>Murmure lointain de la foule, très discret</small></span></label>
       <button class="btn danger" data-act="quit">🚪 Abandonner la partie</button></div>`, { id: 'gmenu' });
   }
+  // ---------- annulation du dernier coup : demande à l'adversaire ----------
+  function renderUndo(v) {
+    const u = v.undo, ex = $('#overlay-root .modal-backdrop[data-mid="undo"]');
+    const hot = UI.session.mode === 'hotseat';
+    const nm = s => esc(v.players[s].name);
+    if (!u) { if (ex) closeModal(ex); UI.undoKey = null; return; }
+    const key = u.id + ':' + u.status + ':' + v.seat;
+    if (u.status === 'refused') {
+      if (ex) closeModal(ex);
+      if (UI.undoToast !== u.id && (hot || u.from === v.seat)) { UI.undoToast = u.id; toast(`${v.players[u.to].name} a refusé d'annuler le coup.`); }
+      UI.undoKey = key; return;
+    }
+    if (UI.undoKey === key && ex) return;
+    if (ex) closeModal(ex);
+    UI.undoKey = key;
+    if (hot || u.to === v.seat) {
+      openModal(`<h2>↩ Annuler le dernier coup ?</h2><p><b>${nm(u.from)}</b> demande à annuler son dernier coup (par exemple une carte jouée par erreur). ${hot ? `<b>${nm(u.to)}</b>, acceptez-vous ?` : 'Acceptez-vous ?'}</p>
+        <div class="row end"><button class="btn" data-act="undo-no">Refuser</button><button class="btn primary" data-act="undo-yes">Accepter</button></div>`, { id: 'undo', closable: false });
+    } else if (u.from === v.seat) {
+      openModal(`<h2>↩ Annuler le dernier coup</h2><p><span class="spinner"></span> En attente de la réponse de <b>${nm(u.to)}</b>…</p>`, { id: 'undo', closable: false, light: true });
+    }
+  }
   function renderEnd(v) {
     if (!v.over) { UI.endShown = false; return; }
     if (UI.endShown) return;
@@ -596,6 +624,9 @@
         if (p && p.mode === 'place' && UI.selected) { const o = p.options.find(x => x.type === 'place' && x.uid === UI.selected && x.z === Number(el.dataset.z)); if (o) answerOpt(o.id); }
         break;
       }
+      case 'undo': if (v && v.canUndo) UI.session.requestUndo(v.seat); break;
+      case 'undo-yes': UI.session.answerUndo(true); break;
+      case 'undo-no': UI.session.answerUndo(false); break;
       case 'ack': if (p && p.kind === 'ack') UI.session.answer(p.id, true); break;
       case 'pick': {
         const uid = el.dataset.uid;

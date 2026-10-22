@@ -106,6 +106,7 @@ b { font-weight: 700; }
 .hud-btns { display: flex; gap: 6px; }
 .iconbtn { background: #1a130e; border: 1px solid var(--line); border-radius: 9px; width: 36px; height: 36px; font-size: 18px; }
 .iconbtn:hover { border-color: var(--gold2); }
+.iconbtn[disabled] { opacity: .3; cursor: not-allowed; }
 
 /* onglets */
 #tabs { flex: none; display: flex; gap: 6px; padding: 6px 10px 0; align-items: center; }

@@ -41,6 +41,7 @@ Le créateur de la partie doit garder son onglet ouvert pendant toute la partie.
 * **Préparation** : cliquez une carte du Forum pour l'acheter, ou une carte ⚙ de votre main pour l'utiliser.
 * **Tactiques** : cliquez une tactique de votre main, puis un emplacement libre (ou glissez-la).
 * Boutons en haut à droite : 🔊 sons · 📜 journal de la partie · 📖 règles et toutes les cartes · ☰ menu.
+* **↩ Annuler mon dernier coup** (bouton en haut) : si vous avez joué une carte ou fait un achat par erreur, la partie revient juste avant votre dernier choix. Contre l'ordinateur c'est immédiat ; à deux (même écran ou en ligne) l'adversaire voit une petite fenêtre « X demande à annuler son dernier coup » et doit **accepter** ou **refuser**.
 * « Mon ludus » et « Fosse » (en bas à gauche) permettent de consulter vos gladiateurs et les cartes défaussées.
 * Les puissances affichées sur les gladiateurs sont calculées automatiquement (désactivable dans le menu).
 
