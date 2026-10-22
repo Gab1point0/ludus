@@ -815,7 +815,9 @@
       else this.say(`${this.name(res.winner)} remporte le combat${ed === 'soif-de-sang' ? ` (${res.dead[res.winner]} gladiateur(s) mort(s) de son côté)` : ` (${res.won[res.winner]} duel(s) contre ${res.won[1 - res.winner]})`} !`);
       this.emit();
       await this.beat(600);
-      await this.ackAll('Combat terminé.', 'Continuer');
+      // dernier combat : la partie se termine tout de suite, la fenêtre de victoire suffit (pas de « Combat terminé » à confirmer)
+      const ends = s.round >= 4 && res.winner !== null && (!this.cfg.variantEmperor || s.wins[res.winner] + 1 >= 2);
+      if (!ends) await this.ackAll('Combat terminé.', 'Continuer');
       return res;
     }
     packCombat(res) {
