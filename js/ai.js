@@ -131,7 +131,7 @@
       const s = sideFromView(sd);
       if (s.glad && s.gladFaceDown && seat === me) s.gladFaceDown = false;   // nos gladiateurs face cachée seront révélés
       if (s.tactic && s.tacticFaceDown) s.tacticFaceDown = false;            // nos tactiques posées seront révélées
-      if (seat === opp && s.hiddenTactic && assumeOppTactics) s.tactic = { uid: 'assumed', def: 'pugio-' + (view.players[opp].color === 'rouge' ? 'rouge' : 'bleu'), deniers: 0 };
+      if (seat === opp && s.hiddenTactic && assumeOppTactics) s.tactic = { uid: 'assumed', def: 'pugio-' + view.players[opp].color, deniers: 0 };
       return s;
     }));
   }

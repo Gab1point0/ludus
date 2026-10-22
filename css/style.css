@@ -245,7 +245,7 @@ b { font-weight: 700; }
 .ll.sep { font: 700 14px var(--serif); color: var(--gold); border-bottom: 1px solid var(--gold2); margin-top: 8px; padding-top: 6px; }
 .ll.hd { color: #f3e8cf; font-weight: 600; }
 .ll.win { color: #ffd35a; font-weight: 700; }
-.nrouge { color: #ff8f84; font-weight: 600; } .nbleu { color: #78b9ff; font-weight: 600; }
+.nrouge { color: #ff8f84; font-weight: 600; } .nbleu { color: #78b9ff; font-weight: 600; } .nvert { color: #7be39c; font-weight: 600; }
 
 /* ---------- bannière / toasts ---------- */
 .banner { position: fixed; left: 0; right: 0; top: 34%; text-align: center; pointer-events: none; z-index: 40; opacity: 0; font: 900 clamp(26px, 5vw, 58px) var(--serif); color: var(--gold); text-shadow: 0 3px 0 #000, 0 0 30px rgba(0, 0, 0, .9); letter-spacing: .04em; }

@@ -15,13 +15,13 @@
   const POKEMON = {
     'provocator-rouge': [4, 'Salamèche', ['Feu'], 'Starter de Pokémon Rouge : il gagne en puissance à chaque étape de la Ligue (évolution).'],
     'provocator-bleu': [7, 'Carapuce', ['Eau'], 'Starter de Pokémon Bleu : il gagne en puissance à chaque étape de la Ligue (évolution).'],
-    thraex: [19, 'Rattata', ['Normal'], '« Le Pokémon des hautes herbes : on en croise partout ! »'],
+    thraex: [66, 'Machoc', ['Combat'], '« Machoc s\'entraîne sans relâche ! »'],
     hoplomaque: [81, 'Magnéti', ['Électrik', 'Acier'], 'Il s\'évolue et s\'unit en groupe : plus ils sont nombreux, plus ils sont forts (Magnéton).'],
     caesarianus: [52, 'Miaouss', ['Normal'], 'Sa capacité Jackpot lui fait gagner des Poké Dollars.'],
-    gallus: [100, 'Voltorbe', ['Électrik'], 'Il se cache au milieu du terrain comme une Poké Ball piégée.'],
+    gallus: [25, 'Pikachu', ['Électrik'], 'La star de l\'Arène : il brille au centre de la scène.'],
     gladiatrix: [133, 'Évoli', ['Normal'], 'Adaptable, il l\'emporte toujours de justesse (Avantage).'],
     munifex: [263, 'Zigzaton', ['Normal'], 'Sa capacité Ramassage récupère les objets laissés sur le terrain.'],
-    samnite: [66, 'Machoc', ['Combat'], 'Costaud, mais intimidé par les Pokémon Starter.'],
+    samnite: [19, 'Rattata', ['Normal'], 'Costaud pour un Rattata, mais intimidé par les Pokémon Starter.'],
     andabata: [143, 'Ronflex', ['Normal'], 'Son poids écrase les alliés voisins.'],
     laquearius: [97, 'Hypnomade', ['Psy'], 'Il hypnotise et capture son adversaire.'],
     murmillo: [67, 'Machopeur', ['Combat'], '« Machopeur ne recule jamais ! »'],
@@ -33,7 +33,7 @@
     dimacherus: [150, 'Mewtwo', ['Psy'], 'Légendaire amplificateur : les bonus et malus sont doublés.'],
     eques: [647, 'Keldeo', ['Eau', 'Combat'], 'Le Légendaire cavalier : il chasse les autres Légendaires.'],
     essedarius: [243, 'Raikou', ['Électrik'], 'Légendaire fulgurant : il galope et galvanise ses voisins.'],
-    sagittarius: [249, 'Lugia', ['Psy', 'Vol'], 'Légendaire protecteur : il prend un allié sous son aile.'],
+    sagittarius: [251, 'Celebi', ['Psy', 'Plante'], 'Légendaire voyageur du temps : il ramène un allié à ses côtés.'],
     scissor: [649, 'Genesect', ['Insecte', 'Acier'], 'Légendaire cybernétique : il neutralise les capacités adverses.'],
     secutor: [383, 'Groudon', ['Sol'], '« Le Légendaire qui fait trembler la terre. »'],
   };
@@ -98,29 +98,57 @@
     return s;
   }
 
+  // ---------- starters au choix : [clé, n° Pokédex, nom, type] ----------
+  const STARTERS = [
+    ['bulbizarre', 1, 'Bulbizarre', 'Plante'], ['salameche', 4, 'Salamèche', 'Feu'], ['carapuce', 7, 'Carapuce', 'Eau'],
+    ['germignon', 152, 'Germignon', 'Plante'], ['hericendre', 155, 'Héricendre', 'Feu'], ['kaiminus', 158, 'Kaiminus', 'Eau'],
+    ['arcko', 252, 'Arcko', 'Plante'], ['poussifeu', 255, 'Poussifeu', 'Feu'], ['gobou', 258, 'Gobou', 'Eau'],
+    ['tortipouss', 387, 'Tortipouss', 'Plante'], ['ouisticram', 390, 'Ouisticram', 'Feu'], ['tiplouf', 393, 'Tiplouf', 'Eau'],
+    ['vipelierre', 495, 'Vipélierre', 'Plante'], ['gruikui', 498, 'Gruikui', 'Feu'], ['moustillon', 501, 'Moustillon', 'Eau'],
+    ['marisson', 650, 'Marisson', 'Plante'], ['feunnec', 653, 'Feunnec', 'Feu'], ['grenousse', 656, 'Grenousse', 'Eau'],
+    ['brindibou', 722, 'Brindibou', 'Plante'], ['flamiaou', 725, 'Flamiaou', 'Feu'], ['otaquin', 728, 'Otaquin', 'Eau'],
+    ['ouistempo', 810, 'Ouistempo', 'Plante'], ['flambino', 813, 'Flambino', 'Feu'], ['larmeleon', 816, 'Larméléon', 'Eau'],
+    ['poussacha', 906, 'Poussacha', 'Plante'], ['chochodile', 909, 'Chochodile', 'Feu'], ['coiffeton', 912, 'Coiffeton', 'Eau'],
+  ].map(([key, id, name, type]) => ({ key, id, name, type, color: type === 'Plante' ? 'vert' : type === 'Feu' ? 'rouge' : 'bleu' }));
+  const STARTER_BY_KEY = {}; STARTERS.forEach(s => { STARTER_BY_KEY[s.key] = s; });
+  const STARTER_HEX = { rouge: '#d8473d', bleu: '#3b8fe0', vert: '#3fb06a' };
+  const STARTER_POKE = {};
+  // chaque starter a son propre Provocator et ses 3 tactiques de départ (même règles que les cartes rouges / bleues)
+  for (const s of STARTERS) {
+    for (const base of ['provocator', 'a-la-fosse', 'convoi', 'pugio']) {
+      const src = CARDS[base + '-rouge']; if (!src) continue;
+      const id = base + '-' + s.key;
+      CARDS[id] = Object.assign({}, src, { id, img: id, color: s.key, extra: true });
+    }
+    STARTER_POKE['provocator-' + s.key] = [s.id, s.name, [s.type], 'Ton Pokémon de départ : il gagne en puissance à chaque étape de la Ligue (évolution).'];
+  }
+  const colorOf = c => (STARTER_BY_KEY[c] ? STARTER_BY_KEY[c].color : c);
+
   // ---------- rendu des cartes ----------
   const esc = s => String(s == null ? '' : s).replace(/[&<>"']/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]));
   const baseOf = id => (CARDS[id] && (CARDS[id].base || id));
   const typeGrad = types => { const a = TYPE_COLOR[types[0]] || '#888', b = TYPE_COLOR[types[1] || types[0]] || a; return `--c1:${a};--c2:${b}`; };
+  // cartes de départ : la couleur de la carte suit le type du starter (rouge = Feu, bleu = Eau, vert = Plante)
+  const START_GRAD = { rouge: ['#f0653b', '#9d2418'], bleu: ['#4a86e8', '#1c3a8f'], vert: ['#58c46a', '#1f7137'] };
+  const startGrad = c => { const g = START_GRAD[colorOf(c)]; return g ? `--c1:${g[0]};--c2:${g[1]}` : ''; };
   const iconTxt = t => esc(t).replace(/([⚡∞⚙⚔☠])/g, '<b class="pk-ic">$1</b>');
   const RANK_CLS = { depart: 'st', debutant: 'ba', aguerri: 'ev', legendaire: 'le' };
   function artImg(url, alt, cls) { return `<img class="${cls || ''}" src="${url}" alt="${esc(alt)}" loading="lazy" draggable="false" onerror="this.style.visibility='hidden'">`; }
   function face(defId) {
     const d = CARDS[defId];
     if (d.type === 'gladiator') {
-      const p = POKEMON[defId]; if (!p) return `<div class="pk"><div class="pk-name">${esc(d.name)}</div></div>`;
+      const p = POKEMON[defId] || STARTER_POKE[defId]; if (!p) return `<div class="pk"><div class="pk-name">${esc(d.name)}</div></div>`;
       const star = d.avantage ? '<span class="pk-adv" title="Avantage">★</span>' : '';
       const txt = d.text && !/^«/.test(d.text) ? iconTxt(d.text) : `<i>${esc(p[3])}</i>`;
-      return `<div class="pk pk-g" style="${typeGrad(p[2])}">
+      return `<div class="pk pk-g" style="${d.start ? startGrad(d.color) : typeGrad(p[2])}">
         <div class="pk-top"><span class="pk-rank ${RANK_CLS[d.rank]}">${esc(RANKS[d.rank].label)}</span>${star}<span class="pk-pw" title="Puissance">${d.power}</span></div>
         <div class="pk-art">${artImg(ART(p[0]), p[1])}</div>
         <div class="pk-name">${esc(d.name)}</div>
-        <div class="pk-types">${p[2].map(t => `<i style="background:${TYPE_COLOR[t]}">${t}</i>`).join('')}</div>
         <div class="pk-txt"><div>${txt}</div></div></div>`;
     }
     const b = baseOf(defId), o = OBJECTS[b]; if (!o) return `<div class="pk pk-t"><div class="pk-name">${esc(d.name)}</div></div>`;
     const art = o[1] === 'dex' ? artImg(ART(o[2]), o[0]) : o[1] === 'img' ? artImg(o[2], o[0], 'pk-logo') : artImg(ITEM(o[2]), o[0], 'pk-item');
-    return `<div class="pk pk-t">
+    return `<div class="pk pk-t" style="${d.start ? startGrad(d.color) : ''}">
       <div class="pk-top"><span class="pk-rank ob">Objet${d.prep ? ' · ⚙' : ''}</span><span class="pk-pw pk-price" title="Prix">₽${d.price}</span></div>
       <div class="pk-art">${art}</div>
       <div class="pk-name">${esc(d.name)}</div>
@@ -135,7 +163,13 @@
 
   // ---------- activation du thème ----------
   const snap = { cards: null, ranks: null, quarters: null, edicts: null };
-  const T = { active: false, name: 'ludus', brand: 'LUDUS', face, edictFace, backFace, edictIcon, lex, aiName: 'Ordinateur', trainerName: 'Laniste' };
+  const T = {
+    active: false, name: 'ludus', brand: 'LUDUS', face, edictFace, backFace, edictIcon, lex, aiName: 'Ordinateur', trainerName: 'Laniste',
+    starters: STARTERS, starterByKey: STARTER_BY_KEY, art: ART,
+    colorHex: c => STARTER_HEX[colorOf(c)] || null, colorClass: c => colorOf(c),
+    // le Rival prend un starter d'un autre type que le vôtre (couleurs distinctes)
+    randomRival: (myKey) => { const mine = STARTER_BY_KEY[myKey]; const pool = STARTERS.filter(s => !mine || s.color !== mine.color); return pool[Math.floor(Math.random() * pool.length)].key; },
+  };
   let observer = null, busy = false;
   const ORIG = new Map();     // textes statiques de la page (menu, onglets…) à restaurer quand on revient à LUDUS
   const isStatic = n => n.parentElement && n.parentElement.closest('#menu,#tabs,#logdrawer,#hub');
@@ -185,7 +219,7 @@
     T.aiName = poke ? 'Rival' : 'Ordinateur'; T.trainerName = poke ? 'Dresseur' : 'Laniste';
     for (const c of Object.values(CARDS)) {
       if (!poke) { c.name = snap.cards[c.id]; continue; }
-      if (c.type === 'gladiator' && POKEMON[c.id]) c.name = POKEMON[c.id][1];
+      if (c.type === 'gladiator' && (POKEMON[c.id] || STARTER_POKE[c.id])) c.name = (POKEMON[c.id] || STARTER_POKE[c.id])[1];
       else if (c.type === 'tactic' && OBJECTS[c.base || c.id]) c.name = OBJECTS[c.base || c.id][0];
     }
     const RK = { depart: 'Starter', debutant: 'Basique', aguerri: 'Évolué', legendaire: 'Légendaire' };

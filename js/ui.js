@@ -33,7 +33,8 @@
     const style = o.w ? ` style="--w:${o.w}"` : '';
     return `<div class="card ${o.cls || ''}" ${data}${uid}${style} ${o.attrs || ''}>${o.back ? backImg(o.back) : faceImg(defId, o.big)}${o.inner || ''}</div>`;
   }
-  const pHex = color => COLOR_HEX[color] || '#999';
+  const pHex = color => (TH() && TH().colorHex(color)) || COLOR_HEX[color] || '#999';
+  const ccls = color => (TH() ? TH().colorClass(color) : color) || '';
   function phaseLabel(v) {
     switch (v.phase) {
       case 'setup': return 'Mise en place';
@@ -46,7 +47,7 @@
     }
     return '';
   }
-  function nameSpan(v, seat) { return `<span class="n${v.players[seat].color}">${esc(v.players[seat].name)}</span>`; }
+  function nameSpan(v, seat) { return `<span class="n${ccls(v.players[seat].color)}">${esc(v.players[seat].name)}</span>`; }
   function setHTML(key, el, html) { if (UI.html[key] === html) return; UI.html[key] = html; el.innerHTML = html; }
 
   // ============================== mise en page ==============================
@@ -376,7 +377,7 @@
     const atBottom = wrap.scrollTop + wrap.clientHeight >= wrap.scrollHeight - 40;
     $('#log').innerHTML = L.map(l => {
       let t = esc(l.text);
-      if (re) t = t.replace(re, m => `<span class="n${colorOf[m] || ''}">${m}</span>`);
+      if (re) t = t.replace(re, m => `<span class="n${ccls(colorOf[m] || '')}">${m}</span>`);
       const cls = l.text.startsWith('══') ? 'sep' : l.text.startsWith('★') ? 'win' : l.text.startsWith('—') ? 'hd' : '';
       return `<div class="ll ${cls}">${t.replace(/^══ (.*) ══$/, '$1')}</div>`;
     }).join('');
