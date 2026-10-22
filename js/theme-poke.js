@@ -32,8 +32,8 @@
     crupellarius: [379, 'Registeel', ['Acier'], 'Légendaire cuirassé : il écrase les objets adverses.'],
     dimacherus: [150, 'Mewtwo', ['Psy'], 'Légendaire amplificateur : les bonus et malus sont doublés.'],
     eques: [647, 'Keldeo', ['Eau', 'Combat'], 'Le Légendaire cavalier : il chasse les autres Légendaires.'],
-    essedarius: [243, 'Raikou', ['Électrik'], 'Légendaire fulgurant : il galope et galvanise ses voisins.'],
-    sagittarius: [251, 'Celebi', ['Psy', 'Plante'], 'Légendaire voyageur du temps : il ramène un allié à ses côtés.'],
+    essedarius: [251, 'Celebi', ['Psy', 'Plante'], 'Légendaire de la forêt : il revitalise ses voisins.'],
+    sagittarius: [249, 'Lugia', ['Psy', 'Vol'], 'Légendaire protecteur : il prend un allié sous son aile.'],
     scissor: [649, 'Genesect', ['Insecte', 'Acier'], 'Légendaire cybernétique : il neutralise les capacités adverses.'],
     secutor: [383, 'Groudon', ['Sol'], '« Le Légendaire qui fait trembler la terre. »'],
   };
