@@ -74,7 +74,7 @@
     rule('À LA FOSSE ?!?', 'Envoyer au PC'), rule('CLEF DE LA FOSSE', 'Accès au PC'),
     rule('à la fosse', 'au PC'), rule('de la fosse', 'du PC'), rule('dans la fosse', 'dans le PC'), rule('la fosse', 'le PC'), rule('fosse', 'PC'),
     rule('le ludus', "l'équipe", 'gu'), rule('du ludus', "de l'équipe", 'gu'), rule('au ludus', "à l'équipe", 'gu'), rule('un ludus', 'une équipe', 'gu'), rule('ce ludus', 'cette équipe', 'gu'), rule('ludus', 'équipe', 'gu'),
-    rule('gladiateurs?', 'Pokémon'),
+    rule('gladiateur\\(s\\)', 'Pokémon'), rule('gladiateurs?', 'Pokémon'),
     rule('lanistes', 'Dresseurs'), rule('laniste', 'Dresseur'),
     rule('Forum', 'Poké Marché', 'gu'),
     rule('Quartiers', 'Rayons'), rule('Quartier', 'Rayon'),
@@ -251,7 +251,7 @@
     if (q('#menu .menu-sub')) q('#menu .menu-sub').innerHTML = poke
       ? 'Devenez le Dresseur le plus puissant de Kanto.<br>Une version Pokémon de <b>LUDUS</b>, par des fans, pour le plaisir.' : 'Soyez le laniste le plus puissant de Rome.<br>Un jeu de <b>Séraphin Gaillard</b> &amp; <b>Gabin Guyot</b>';
     if (q('#menu .menu-foot')) q('#menu .menu-foot').innerHTML = poke
-      ? 'Projet de fans, non officiel : Pokémon et ses personnages appartiennent à Nintendo, Game Freak et The Pokémon Company. Images : PokeAPI/sprites.' : 'Version 1.7 · © 2026 Séraphin Gaillard &amp; Gabin Guyot';
+      ? 'Projet de fans, non officiel : Pokémon et ses personnages appartiennent à Nintendo, Game Freak et The Pokémon Company. Images : PokeAPI/sprites.' : 'Version 1.8 · © 2026 Séraphin Gaillard &amp; Gabin Guyot';
     if (poke) walk(document.body);
   }
   T.set = set;

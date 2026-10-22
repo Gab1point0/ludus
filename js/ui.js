@@ -97,7 +97,7 @@
     UI.view = v;
     if (pass != null) return;               // écran de passage : on ne dévoile rien
     if (v.undoStamp !== UI.undoStamp) {     // un coup vient d'être annulé : on repart d'un affichage neuf
-      UI.undoStamp = v.undoStamp; UI.logN = -1; UI.logLen = -1; UI.html = {}; UI.selected = null; UI.promptPid = null; UI.lastPromptId = null;
+      UI.undoStamp = v.undoStamp; UI.fxSeen = null; UI.logN = -1; UI.logLen = -1; UI.html = {}; UI.selected = null; UI.promptPid = null; UI.lastPromptId = null;
       closeAll(m => ['prompt', 'confirm'].includes(m.dataset.mid));
     }
     if (root.LudusSfx) root.LudusSfx.onView(v);
@@ -128,6 +128,7 @@
     renderPromptBar(v, p);
     renderLog(v);
     renderBuys(v);
+    processFx(v);
     if (UI.hoverEl && !document.contains(UI.hoverEl)) hidePreview();     // la carte survolée a disparu : on ferme son aperçu
     renderPromptModal(v, p);
     renderUndo(v);
@@ -351,8 +352,8 @@
       const pass = p.options.find(o => o.type === 'pass');
       text = `<b>Tactiques</b> — ${UI.selected ? 'cliquez sur un emplacement libre de votre côté (ou glissez la carte).' : 'cliquez une tactique de votre main pour la placer <b>face cachée</b> dans le Colisée.'}`;
       btns = `<button class="btn" data-act="opt" data-opt="${pass.id}">${esc(pass.label)}</button>`;
-    } else if (p && p.kind === 'ack' && p.mode === 'edict') {
-      act = true; text = `<b>${esc(p.title)}</b> — cliquez « J'ai lu » dans la fenêtre pour continuer.`;
+    } else if (p && p.kind === 'ack' && (p.mode === 'edict' || p.mode === 'recap')) {
+      act = true; text = `<b>${esc(p.title)}</b> — cliquez « ${p.mode === 'edict' ? 'J\'ai lu' : 'Continuer'} » dans la fenêtre pour continuer.`;
     } else if (p && p.kind === 'ack') {
       act = true; text = `<b>${esc(p.title)}</b>`; btns = `<button class="btn primary" data-act="ack">${esc(p.button || 'Continuer')}</button>`;
     } else if (p) { act = true; text = `<b>${esc(p.title || 'À vous de jouer')}</b>`; }
@@ -446,7 +447,7 @@
   // ---------- fenêtre liée à une question du moteur ----------
   function renderPromptModal(v, p) {
     const existing = $('#overlay-root .modal-backdrop[data-mid="prompt"]');
-    const needs = p && (p.kind === 'cards' || p.kind === 'number' || (p.kind === 'ack' && p.mode === 'edict') || (p.kind === 'choice' && !['prep', 'place'].includes(p.mode)));
+    const needs = p && (p.kind === 'cards' || p.kind === 'number' || (p.kind === 'ack' && (p.mode === 'edict' || p.mode === 'recap')) || (p.kind === 'choice' && !['prep', 'place'].includes(p.mode)));
     const DOCK = ['zone', 'slot', 'seat', 'order'];
     const dock = !!(p && p.kind === 'choice' && DOCK.includes(p.mode));
     if (!needs) { if (existing) closeModal(existing); UI.promptPid = null; return; }
@@ -454,7 +455,19 @@
     if (existing) closeModal(existing);
     UI.promptPid = p.id; UI.pickSel = new Set(); UI.numVal = p.kind === 'number' ? (p.default || p.min) : 0;
     let html = '', light = false, cls = '';
-    if (p.kind === 'ack') {
+    if (p.kind === 'ack' && p.mode === 'recap') {
+      cls = 'recap-big';
+      const col = (title, d, mineCol) => {
+        const n = d.items.length;
+        const lines = d.items.map((it, i) => `<div class="rc-line" style="animation-delay:${(i * 0.5).toFixed(2)}s">${it.def ? `<span class="rc-card">${cardHTML(it.def, { w: '30px' })}</span>` : '<span class="rc-card"></span>'}<span class="rc-why">${esc(it.why)}</span><b class="${it.amt < 0 ? 'neg' : it.amt > 0 ? 'pos' : 'card'}">${it.amt ? (it.amt > 0 ? '+' : '') + it.amt + ' ' + coin : '🎴 carte'}</b></div>`).join('');
+        const delta = d.to - d.from;
+        return `<div class="rc-col ${mineCol ? 'mine' : ''}"><h3>${title}</h3>${lines || '<div class="rc-line none" style="animation-delay:0s"><span class="rc-why">Aucun gain pendant ce combat</span></div>'}
+          <div class="rc-total" style="animation-delay:${(n * 0.5 + 0.2).toFixed(2)}s">Deniers : ${d.from} ${coin} → <b>${d.to}</b> ${coin} <span class="${delta < 0 ? 'neg' : 'pos'}">(${delta >= 0 ? '+' : ''}${delta})</span></div></div>`;
+      };
+      html = `<h2>📊 Bilan du combat — d'où viennent les deniers</h2><div class="rc-grid">${col('Vous', p.mine, true)}${col(esc(v.players[1 - v.seat].name), p.theirs, false)}</div>
+        <div class="row center" style="margin-top:12px"><button class="btn primary big" style="justify-content:center;min-width:220px" data-act="ack">${esc(p.button || 'Continuer')}</button></div>`;
+      if (root.LudusSfx) p.mine.items.forEach((it, i) => { if (it.amt > 0) root.LudusSfx.play('coin', 0.1 + i * 0.5, 0.7); });
+    } else if (p.kind === 'ack') {
       const e = v.edict;
       cls = 'edict-big';
       html = `<h2>📜 ${esc(p.title)}</h2><div class="card edict" data-edict="${e.def}">${edictImg(e.def, true)}</div>
@@ -520,6 +533,32 @@
       <label class="check"><input type="checkbox" id="opt-amb" ${root.LudusSfx.S.ambient ? 'checked' : ''}><span>Ambiance de l'arène<small>Murmure lointain de la foule, très discret</small></span></label>
       <button class="btn danger" data-act="quit">🚪 Abandonner la partie</button></div>`, { id: 'gmenu' });
   }
+  // ---------- animation des gains / pertes de deniers : « +2 ₽ » qui s'envole depuis la carte (ou le joueur) concerné ----------
+  function processFx(v) {
+    const list = v.fx || [];
+    const maxN = list.length ? list[list.length - 1].n : 0;
+    if (UI.fxSeen == null) { UI.fxSeen = maxN; return; }       // première vue : on n'anime pas l'historique
+    const fresh = list.filter(e => e.n > UI.fxSeen && e.why !== 'Achat');
+    UI.fxSeen = Math.max(UI.fxSeen, maxN);
+    fresh.slice(0, 8).forEach((e, i) => setTimeout(() => popFx(v, e), i * 260));
+  }
+  function popFx(v, e) {
+    let target = null;
+    if (e.z != null && $('#colisee').classList.contains('active')) target = $(`#colisee .gslot[data-z="${e.z}"][data-seat="${e.seat}"]`);
+    const chip = $(e.seat === v.seat ? '.pchip.me' : '.pchip.opp');
+    if (!target) target = chip;
+    if (!target) return;
+    const r = target.getBoundingClientRect();
+    const el = document.createElement('div');
+    el.className = 'fx-pop ' + (e.amt < 0 ? 'loss' : 'gain');
+    el.innerHTML = `<b>${e.amt > 0 ? '+' : ''}${e.amt} ${coin}</b><small>${esc(e.why)}</small>`;
+    document.body.appendChild(el);
+    const x = Math.max(70, Math.min(window.innerWidth - 70, r.left + r.width / 2));
+    el.style.left = x + 'px'; el.style.top = Math.max(60, r.top + Math.min(r.height / 2, 40)) + 'px';
+    setTimeout(() => el.remove(), 2600);
+    if (chip) { chip.classList.remove('flash'); void chip.offsetWidth; chip.classList.add('flash'); setTimeout(() => chip.classList.remove('flash'), 1100); }
+  }
+
   // ---------- achats de la manche, visibles pendant toute la phase de préparation ----------
   function renderBuys(v) {
     const box = $('#buys');
@@ -737,7 +776,7 @@
   }
 
   function attach(session) {
-    UI.session = session; UI.view = null; UI.tab = 'forum'; UI.autoKey = ''; UI.logN = -1; UI.logLen = -1; UI.logFirst = true; UI.endShown = false; UI.selected = null; UI.promptPid = null; UI.lastPromptId = null; UI.html = {};
+    UI.session = session; UI.view = null; UI.tab = 'forum'; UI.autoKey = ''; UI.logN = -1; UI.logLen = -1; UI.logFirst = true; UI.endShown = false; UI.selected = null; UI.promptPid = null; UI.lastPromptId = null; UI.html = {}; UI.fxSeen = null;
     if (UI.unsub) UI.unsub();
     UI.unsub = session.onChange(() => render());
     $('#logdrawer').classList.remove('open');

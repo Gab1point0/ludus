@@ -163,8 +163,20 @@
     checkAbort() { if (this.aborted) { const e = new Error('aborted'); e.aborted = true; throw e; } }
     abort() { this.aborted = true; for (const p of [0, 1]) { const c = this.ctrl[p]; if (c && c.cancel) c.cancel(); } this.emit(); }
 
+    // ---------- gains / pertes de deniers (avec événement pour l'animation et journal « bilan du combat ») ----------
+    gain(seat, amt, why, o) {
+      o = o || {};
+      if (!amt) return;
+      this.s.players[seat].deniers += amt;
+      this.s.fx.push({ n: ++this._fxN, seat, amt, why, z: o.z == null ? null : o.z, uid: o.uid || null });
+      if (this.s.fx.length > 40) this.s.fx.shift();
+      if (this.s.ledger && !o.noLedger) this.s.ledger[seat].push({ amt, why, z: o.z == null ? null : o.z, def: o.def || null });
+    }
+    note(seat, why, def, priv) { if (this.s.ledger) this.s.ledger[seat].push({ amt: 0, why, def: def || null, priv: !!priv }); }
+
     // ---------- initialisation ----------
     init() {
+      this._fxN = 0;
       const adv = this.cfg.advanced;
       const forum = {};
       for (const q of Q_ORDER) forum[q] = { reserve: [], depot: [], slots: QUARTIERS[q].unlock.map(() => null), unlock: QUARTIERS[q].unlock.slice() };
@@ -188,7 +200,7 @@
         players, forum, fosse: { gladiators: [], tactics: [] },
         edictDeck: this.shuffle(Object.keys(EDICTS).map(id => this.mk(id))), edictDiscard: [], edict: null,
         colisee: { zones: [0, 1, 2].map(() => [this.emptySide(), this.emptySide()]), noDeath: [[], [], []] },
-        combat: null, prompts: { 0: null, 1: null }, purchases: [0, 0], buys: [[], []], wins: [0, 0],
+        combat: null, prompts: { 0: null, 1: null }, purchases: [0, 0], buys: [[], []], wins: [0, 0], fx: [], ledger: null, ledgerStart: null,
         over: false, winner: null, endReason: '', toss: null,
       };
     }
@@ -278,7 +290,7 @@
       s.toss = { hider, chooser, pick, holder };
       s.firstSeat = holder;
       this.say(`${this.name(chooser)} choisit le poing ${pick === 'left' ? 'gauche' : 'droit'} : ${gotSesterce ? 'le sesterce !' : 'le denier.'} ${this.name(holder)} est le premier laniste.`);
-      if (initial) s.players[1 - holder].deniers += 1;
+      if (initial) this.gain(1 - holder, 1, 'Avantage du second laniste', { noLedger: true });
       await this.beat(900);
     }
 
@@ -353,7 +365,7 @@
             }
             if (got[0] && got[1]) {
               const d = defOf(got[0]).price - defOf(got[1]).price;
-              if (d !== 0) { const who = d > 0 ? 1 : 0; s.players[who].deniers += Math.abs(d); this.say(`${this.name(who)} reçoit la différence : ${Math.abs(d)} denier(s).`); }
+              if (d !== 0) { const who = d > 0 ? 1 : 0; this.gain(who, Math.abs(d), 'Prime tactique : différence de prix', { noLedger: true }); this.say(`${this.name(who)} reçoit la différence : ${Math.abs(d)} denier(s).`); }
             }
           }
           break;
@@ -382,7 +394,7 @@
               const rest = p.ludus.filter(c => defOf(c).rank !== 'depart');
               rest.forEach(c => { p.ludus.splice(p.ludus.indexOf(c), 1); s.fosse.gladiators.push(c); gain += RANKS[defOf(c).rank].price; n++; });
             }
-            p.deniers += gain;
+            this.gain(seat, gain, 'Vente forcée', { noLedger: true });
             this.say(`Vente forcée : ${this.name(seat)} défausse ${n} gladiateur(s) et reçoit ${gain} denier(s).`);
           }
           break;
@@ -516,7 +528,7 @@
 
     async doBuy(seat, o) {
       const s = this.s, p = s.players[seat], F = s.forum[o.q];
-      p.deniers -= o.price;
+      this.gain(seat, -o.price, 'Achat', { noLedger: true });
       s.purchases[seat]++;
       if (o.from === 'slot') {
         const c = F.slots[o.i]; F.slots[o.i] = null;
@@ -617,6 +629,7 @@
     async revelation() {
       const s = this.s;
       s.phase = 'reveal'; s.step = 'draw'; s.combat = null;
+      s.ledger = [[], []]; s.ledgerStart = [s.players[0].deniers, s.players[1].deniers];     // pour le bilan du combat
       this.say('— Révélation : tirage des gladiateurs —');
       // A : tirage
       for (const seat of [0, 1]) this.shuffle(s.players[seat].ludus);
@@ -671,7 +684,7 @@
           const c = p.hand.find(x => x.uid === o.uid); p.hand.splice(p.hand.indexOf(c), 1);
           const side = s.colisee.zones[o.z][cur]; side.tactic = c; side.tacticFaceDown = true;
           this.say(`${this.name(cur)} place une tactique face cachée (zone ${o.z + 1}).`);
-          if (this.edictId() === 'prime-tactique' && s.round <= 3) { p.deniers += 1; this.say(`Prime tactique : ${this.name(cur)} reçoit 1 denier.`); }
+          if (this.edictId() === 'prime-tactique' && s.round <= 3) { this.gain(cur, 1, 'Prime tactique (tactique posée)', { z: o.z }); this.say(`Prime tactique : ${this.name(cur)} reçoit 1 denier.`); }
           await this.beat(350);
         }
         cur = 1 - cur;
@@ -722,7 +735,7 @@
     async applyGladReveal(seat, z, g) {
       const s = this.s, p = s.players[seat], b = baseOf(g);
       if (this.gladBlockedNow(z, seat)) { this.say(`L'effet de ${this.cname(g)} ne peut pas s'appliquer.`); return; }
-      if (b === 'caesarianus') { p.deniers += 2; this.say(`${this.cname(g)} : ${this.name(seat)} reçoit 2 deniers.`); }
+      if (b === 'caesarianus') { this.gain(seat, 2, `${this.cname(g)} (effet de révélation)`, { z, uid: g.uid, def: g.def }); this.say(`${this.cname(g)} : ${this.name(seat)} reçoit 2 deniers.`); }
       else if (b === 'pegma' || b === 'sagittarius') {
         const side = s.colisee.zones[z][seat];
         const el = b === 'pegma' ? p.ludus.filter(c => defOf(c).rank === 'debutant' || defOf(c).rank === 'aguerri') : p.ludus.slice();
@@ -749,7 +762,8 @@
         case 'complices': {
           if (p.deniers <= 0) { this.say('Complices : aucun denier à placer.'); break; }
           const n = await this.ask(seat, { kind: 'number', title: 'COMPLICES : combien de deniers placer ? (tous les 2 deniers = +1 puissance)', min: 0, max: p.deniers, default: 0 });
-          p.deniers -= n; t.deniers = (t.deniers || 0) + n;
+          if (n) this.gain(seat, -n, 'Complices : deniers misés', { z });
+          t.deniers = (t.deniers || 0) + n;
           this.say(`Complices : ${this.name(seat)} place ${n} denier(s) (zone ${z + 1}).`);
           break;
         }
@@ -804,7 +818,7 @@
         const d = res.duels[k];
         s.combat.shown = k + 1;
         this.narrateDuel(d);
-        for (const sd of [0, 1]) if (d.gain[sd]) { s.players[sd].deniers += d.gain[sd]; this.say(`Gladiatrix : ${this.name(sd)} reçoit ${d.gain[sd]} deniers.`); }
+        for (const sd of [0, 1]) if (d.gain[sd]) { const gl = s.colisee.zones[d.z][sd].glad; this.gain(sd, d.gain[sd], 'Gladiatrix : duel remporté', { z: d.z, uid: gl && gl.uid, def: gl && gl.def }); this.say(`Gladiatrix : ${this.name(sd)} reçoit ${d.gain[sd]} deniers.`); }
         if (d.recruited) this.recruitFromColisee(d);
         this.emit();
         await this.beat(1300);
@@ -855,7 +869,8 @@
       this.say('— Récompenses —');
       for (const seat of [0, 1]) {
         const n = res.won[seat] * (prime ? 2 : 1);
-        if (n) { s.players[seat].deniers += n; this.say(`${this.name(seat)} reçoit ${n} denier(s) pour ses duels remportés.`); }
+        res.duels.forEach(d => { if (d.winner === seat) { const ent = seat === 0 ? d.a : d.b; this.gain(seat, prime ? 2 : 1, `Duel remporté (zone ${d.z + 1})`, { z: d.z, uid: ent && ent.card.uid, def: ent && ent.card.def }); } });
+        if (n) this.say(`${this.name(seat)} reçoit ${n} denier(s) pour ses duels remportés.`);
       }
       if (res.winner !== null) {
         const count = prime ? 2 : 1;
@@ -865,15 +880,35 @@
       await this.deathsAndDiscard(res, true);
       s.step = 'subsidies';
       for (const seat of [0, 1]) {
-        const n = Math.min(SUBSIDY_CAP, s.players[seat].ludus.length);
-        s.players[seat].deniers += n;
+        const cnt = s.players[seat].ludus.length, n = Math.min(SUBSIDY_CAP, cnt);
+        this.gain(seat, n, `Subventions : ${cnt} gladiateur(s) dans l'équipe${cnt > SUBSIDY_CAP ? ` (plafond ${SUBSIDY_CAP})` : ''}`);
         this.say(`Subventions : ${this.name(seat)} reçoit ${n} denier(s) (${s.players[seat].ludus.length} gladiateur(s) dans son ludus).`);
       }
+      await this.recap();
       s.step = 'sesterce';
       if (res.winner !== null) { s.firstSeat = res.winner; this.say(`${this.name(res.winner)} obtient le sesterce : il sera premier laniste.`); }
       else await this.coinToss(false);
       this.emit();
       await this.beat(500);
+    }
+
+    // bilan de la manche : d'où viennent les deniers (et les cartes) gagnés ; chaque joueur clique « Continuer »
+    async recap() {
+      const s = this.s; if (!s.ledger) return;
+      const mk = seat => {
+        const sum = s.ledger[seat].reduce((a, e) => a + e.amt, 0);
+        const real = s.players[seat].deniers - s.ledgerStart[seat];
+        const items = s.ledger[seat].map(e => ({ why: e.why, amt: e.amt, def: e.def || null }));
+        if (real !== sum) items.push({ why: 'Autres', amt: real - sum, def: null });
+        return { items, from: s.ledgerStart[seat], to: s.players[seat].deniers };
+      };
+      const data = [mk(0), mk(1)];
+      await Promise.all([0, 1].map(seat => {
+        // la carte récompense recrutée par l'adversaire reste secrète
+        const other = data[1 - seat].items.map((it, i) => (s.ledger[1 - seat][i] && s.ledger[1 - seat][i].priv) ? { why: 'Gladiateur récompense recruté', amt: 0, def: null } : it);
+        return this.ask(seat, { kind: 'ack', mode: 'recap', title: 'Bilan du combat', button: 'Continuer', mine: data[seat], theirs: Object.assign({}, data[1 - seat], { items: other }), round: s.round });
+      }));
+      s.ledger = null;
     }
 
     async rewardGladiator(seat, rank) {
@@ -884,7 +919,7 @@
       const chosen = await this.askCards(seat, `Récompense : piochez 2 gladiateurs ${RANKS[rank].label}, recrutez-en 1 (l'autre part au dépôt).`, got, 0, 1, { source: 'reward', rank });
       const F = s.forum[rank];
       for (const c of got) {
-        if (chosen.includes(c.uid)) { s.players[seat].ludus.push(c); this.say(`${this.name(seat)} recrute ${this.cname(c)}.`, seat); }
+        if (chosen.includes(c.uid)) { s.players[seat].ludus.push(c); this.say(`${this.name(seat)} recrute ${this.cname(c)}.`, seat); this.note(seat, `Gladiateur récompense (${RANKS[rank].label}) recruté`, c.def, true); }
         else F.depot.push(c);
       }
       this.say(`${this.name(seat)} ${chosen.length ? 'recrute un gladiateur' : 'ne recrute aucun gladiateur'} récompense (${RANKS[rank].label}).`, 1 - seat);
@@ -905,7 +940,7 @@
         const t = gz[d.z][d.s].tactic;
         const n = (t && !gz[d.z][d.s].tacticFaceDown && baseOf(t) === 'datura' && !this.zoneProtected(d.z)) ? 2 : 1;
         for (let k = 0; k < n; k++) {
-          if (b === 'nobile') { s.players[seat].deniers += 6; this.say(`Nobile meurt : ${this.name(seat)} reçoit 6 deniers.`); }
+          if (b === 'nobile') { this.gain(seat, 6, `${this.cname(d.card)} meurt (effet de mort)${n > 1 ? ' ×2 (Datura)' : ''}`.replace(/ ×2.*$/, ''), { z: d.z, uid: d.card.uid, def: d.card.def }); this.say(`Nobile meurt : ${this.name(seat)} reçoit 6 deniers.`); }
           else {
             let got = 0;
             for (let zz = 0; zz < 3; zz++) { const sd = gz[zz][seat]; if (sd.tactic) { s.players[seat].hand.push(sd.tactic); sd.tactic = null; sd.tacticFaceDown = false; got++; } }
@@ -918,7 +953,7 @@
         const side = gz[d.z][d.s];
         s.fosse.gladiators.push(side.glad); side.glad = null;
         side.renforts.forEach(c => s.players[d.s].ludus.push(c)); side.renforts = [];
-        if (compensate && r <= 3) { s.players[d.s].deniers += COMPENSATION[r - 1]; }
+        if (compensate && r <= 3) this.gain(d.s, COMPENSATION[r - 1], `${this.cname(d.card)} est mort : compensation`, { z: d.z, uid: d.card.uid, def: d.card.def });
       }
       if (dying.length) {
         const cnt = [0, 0]; dying.forEach(d => cnt[d.s]++);
@@ -1006,6 +1041,7 @@
       return {
         seat, round: s.round, phase: s.phase, step: s.step, emperor: s.emperor, firstSeat: s.firstSeat, extra: s.extra,
         variant: this.cfg.variantEmperor, wins: s.wins.slice(), over: s.over, winner: s.winner, endReason: s.endReason,
+        fx: s.fx.slice(-30),
         buys: [0, 1].map(i => s.buys[i].map(b => (i === seat || b.pub) ? { uid: b.uid, def: b.def, pub: b.pub } : { hidden: true, q: b.q })),
         edict: e ? { def: e.id, name: e.name, text: e.rounds[Math.max(0, Math.min(3, s.round - 1))] } : null,
         edictDeck: s.edictDeck.length,

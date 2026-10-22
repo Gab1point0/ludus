@@ -129,6 +129,29 @@ b { font-weight: 700; }
 .modal-backdrop.dock .modal { pointer-events: auto; width: min(320px, 92vw); max-height: calc(100vh - 100px); padding: 12px 14px; border-width: 3px; box-shadow: 0 8px 30px rgba(0, 0, 0, .8); }
 .modal-backdrop.dock .modal h2 { font-size: 17px; }
 .dock-hint { color: var(--muted); font-size: 12.5px; margin: 2px 0 6px; }
+/* gains de deniers animés */
+.fx-pop { position: fixed; z-index: 450; transform: translate(-50%, 0); pointer-events: none; text-align: center; animation: fxUp 2.4s ease-out forwards; text-shadow: 0 2px 6px #000, 0 0 14px #000; }
+.fx-pop b { display: block; font: 900 30px var(--serif); }
+.fx-pop small { display: block; font: 700 12px var(--sans); color: #fff; background: rgba(0, 0, 0, .65); border-radius: 8px; padding: 1px 7px; margin-top: 2px; white-space: nowrap; max-width: 230px; overflow: hidden; text-overflow: ellipsis; }
+.fx-pop.gain b { color: #ffe27a; } .fx-pop.loss b { color: #ff8e80; }
+@keyframes fxUp { 0% { opacity: 0; transform: translate(-50%, 10px) scale(.6); } 12% { opacity: 1; transform: translate(-50%, -6px) scale(1.25); } 25% { transform: translate(-50%, -14px) scale(1); } 80% { opacity: 1; } 100% { opacity: 0; transform: translate(-50%, -78px) scale(1); } }
+.pchip.flash { animation: chipFlash 1s ease-out; }
+@keyframes chipFlash { 0%, 40% { box-shadow: 0 0 0 3px #ffe27a, 0 0 22px 6px rgba(255, 226, 122, .9); transform: scale(1.06); } 100% { transform: none; } }
+/* bilan du combat */
+.recap-big { max-width: min(96vw, 860px); }
+.rc-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 14px; margin-top: 6px; }
+@media (max-width: 700px) { .rc-grid { grid-template-columns: 1fr; } }
+.rc-col { background: #150f0b; border: 1px solid var(--line); border-radius: 12px; padding: 8px 12px 10px; }
+.rc-col.mine { border-color: var(--gold2); }
+.rc-col h3 { margin: 2px 0 8px; }
+.rc-line { display: flex; align-items: center; gap: 8px; padding: 4px 0; border-bottom: 1px dotted rgba(255, 255, 255, .1); opacity: 0; animation: rcIn .35s ease-out forwards; }
+.rc-line.none .rc-why { color: var(--muted); font-style: italic; }
+.rc-card { width: 30px; flex: none; }
+.rc-why { flex: 1; line-height: 1.25; font-size: 14px; }
+.rc-line b { font: 800 16px var(--sans); white-space: nowrap; }
+.rc-line b.pos, .rc-total .pos { color: #8df0a6; } .rc-line b.neg, .rc-total .neg { color: #ff8e80; } .rc-line b.card { color: var(--gold); font-size: 13px; }
+.rc-total { margin-top: 8px; padding-top: 6px; border-top: 2px solid var(--gold2); font-weight: 700; opacity: 0; animation: rcIn .4s ease-out forwards; }
+@keyframes rcIn { from { opacity: 0; transform: translateX(-12px); } to { opacity: 1; transform: none; } }
 /* Édit de l'Empereur affiché en grand */
 .edict-big { text-align: center; max-width: min(94vw, 760px); }
 .edict-big .card.edict { --w: min(86vw, 660px); margin: 8px auto; cursor: default; }
