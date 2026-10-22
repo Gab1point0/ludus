@@ -112,6 +112,8 @@
     const p = v.prompt;
     if (p && p.kind === 'choice' && p.mode === 'prep' && UI.lastPromptId !== p.id) UI.tab = 'forum';
     if (p && p.kind === 'choice' && p.mode === 'place' && UI.lastPromptId !== p.id) UI.tab = 'colisee';
+    if (p && p.kind === 'choice' && ['zone', 'slot', 'seat', 'order'].includes(p.mode) && UI.lastPromptId !== p.id) UI.tab = 'colisee';
+    if (p && p.kind === 'choice' && p.mode === 'quarter' && UI.lastPromptId !== p.id) UI.tab = 'forum';
     if (p) UI.lastPromptId = p.id;
     if (!p) UI.selected = null;
     if (p && p.kind === 'choice' && p.mode === 'place' && UI.selected && !p.options.some(o => o.uid === UI.selected)) UI.selected = null;
@@ -124,6 +126,8 @@
     renderHand(v, p);
     renderPromptBar(v, p);
     renderLog(v);
+    renderBuys(v);
+    if (UI.hoverEl && !document.contains(UI.hoverEl)) hidePreview();     // la carte survolée a disparu : on ferme son aperçu
     renderPromptModal(v, p);
     renderUndo(v);
     renderEnd(v);
@@ -330,6 +334,8 @@
       const pass = p.options.find(o => o.type === 'pass');
       text = `<b>Tactiques</b> — ${UI.selected ? 'cliquez sur un emplacement libre de votre côté (ou glissez la carte).' : 'cliquez une tactique de votre main pour la placer <b>face cachée</b> dans le Colisée.'}`;
       btns = `<button class="btn" data-act="opt" data-opt="${pass.id}">${esc(pass.label)}</button>`;
+    } else if (p && p.kind === 'ack' && p.mode === 'edict') {
+      act = true; text = `<b>${esc(p.title)}</b> — cliquez « J'ai lu » dans la fenêtre pour continuer.`;
     } else if (p && p.kind === 'ack') {
       act = true; text = `<b>${esc(p.title)}</b>`; btns = `<button class="btn primary" data-act="ack">${esc(p.button || 'Continuer')}</button>`;
     } else if (p) { act = true; text = `<b>${esc(p.title || 'À vous de jouer')}</b>`; }
@@ -410,7 +416,7 @@
   function openModal(html, o) {
     o = o || {};
     const el = document.createElement('div');
-    el.className = 'modal-backdrop' + (o.light ? ' light' : '');
+    el.className = 'modal-backdrop' + (o.light ? ' light' : '') + (o.dock ? ' dock' : '');
     el.dataset.mid = o.id || '';
     el.innerHTML = `<div class="modal ${o.cls || ''}" ${o.style ? `style="${o.style}"` : ''}>${html}</div>`;
     if (o.closable !== false) el.addEventListener('mousedown', e => { if (e.target === el) closeModal(el); });
@@ -423,13 +429,21 @@
   // ---------- fenêtre liée à une question du moteur ----------
   function renderPromptModal(v, p) {
     const existing = $('#overlay-root .modal-backdrop[data-mid="prompt"]');
-    const needs = p && (p.kind === 'cards' || p.kind === 'number' || (p.kind === 'choice' && !['prep', 'place'].includes(p.mode)));
+    const needs = p && (p.kind === 'cards' || p.kind === 'number' || (p.kind === 'ack' && p.mode === 'edict') || (p.kind === 'choice' && !['prep', 'place'].includes(p.mode)));
+    const DOCK = ['zone', 'slot', 'seat', 'order'];
+    const dock = !!(p && p.kind === 'choice' && DOCK.includes(p.mode));
     if (!needs) { if (existing) closeModal(existing); UI.promptPid = null; return; }
     if (existing && UI.promptPid === p.id) return;
     if (existing) closeModal(existing);
     UI.promptPid = p.id; UI.pickSel = new Set(); UI.numVal = p.kind === 'number' ? (p.default || p.min) : 0;
-    let html = '', light = false;
-    if (p.kind === 'cards') {
+    let html = '', light = false, cls = '';
+    if (p.kind === 'ack') {
+      const e = v.edict;
+      cls = 'edict-big';
+      html = `<h2>📜 ${esc(p.title)}</h2><div class="card edict" data-edict="${e.def}">${edictImg(e.def, true)}</div>
+        <div class="now"><b>Effet pour la manche ${v.round} :</b>${esc(e.text)}</div>
+        <div class="row center" style="margin-top:12px"><button class="btn primary big" style="justify-content:center;min-width:220px" data-act="ack">${esc(p.button || 'J\'ai lu')}</button></div>`;
+    } else if (p.kind === 'cards') {
       const reward = p.source === 'reward';
       const cards = p.cards.map(c => cardHTML(c.def, { uid: c.uid, big: reward, attrs: `data-act="pick" data-uid="${c.uid}"` })).join('');
       html = `<h2>${esc(p.title)}</h2>
@@ -452,7 +466,8 @@
       light = true;
       html = `<h2>${esc(p.title)}</h2><div class="optlist">${p.options.map(o => `<button class="btn" data-act="opt" data-opt="${o.id}">${esc(o.label)}</button>`).join('')}</div>`;
     }
-    openModal(html, { id: 'prompt', closable: false, light });
+    if (dock) html = html.replace(/<h2>(.*?)<\/h2>/, '<h2>$1</h2><div class="dock-hint">Le plateau reste visible : regardez, puis choisissez.</div>');
+    openModal(html, { id: 'prompt', closable: false, light, dock, cls });
     if (p.kind === 'cards') updatePick(p);
   }
   function updatePick(p) {
@@ -488,6 +503,22 @@
       <label class="check"><input type="checkbox" id="opt-amb" ${root.LudusSfx.S.ambient ? 'checked' : ''}><span>Ambiance de l'arène<small>Murmure lointain de la foule, très discret</small></span></label>
       <button class="btn danger" data-act="quit">🚪 Abandonner la partie</button></div>`, { id: 'gmenu' });
   }
+  // ---------- achats de la manche, visibles pendant toute la phase de préparation ----------
+  function renderBuys(v) {
+    const box = $('#buys');
+    const on = v.phase === 'preparation';
+    if (box.classList.contains('on') !== on) { box.classList.toggle('on', on); UI.sizeKey = ''; }
+    if (!on) { setHTML('buys', box, ''); return; }
+    const grp = seat => {
+      const list = v.buys[seat], mine = seat === v.seat;
+      const cards = list.map(b => b.hidden
+        ? cardHTML(null, { back: 'gladiator', cls: 'hid', inner: '<span class="hidtag">caché</span>' })
+        : cardHTML(b.def, { uid: b.uid, cls: b.pub ? '' : '' })).join('');
+      return `<div class="bgrp ${mine ? '' : 'opp'}"><span class="lab">Achats de la manche<b>${mine ? 'Vous' : esc(v.players[seat].name)}</b></span>${cards || '<span class="none">aucun achat pour l\'instant</span>'}</div>`;
+    };
+    setHTML('buys', box, grp(1 - v.seat) + grp(v.seat));
+  }
+
   // ---------- annulation du dernier coup : demande à l'adversaire ----------
   function renderUndo(v) {
     const u = v.undo, ex = $('#overlay-root .modal-backdrop[data-mid="undo"]');

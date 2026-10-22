@@ -114,6 +114,26 @@ b { font-weight: 700; }
 #tabs button.on { background: var(--gold2); color: #2a1b08; }
 #tabs button.attn::after { content: ' ●'; color: #ff5b4a; }
 #tabs-hint { margin-left: auto; font-size: 12.5px; color: var(--muted); }
+#buys { flex: none; display: none; gap: 8px; padding: 4px 10px 6px; align-items: stretch; }
+#buys.on { display: flex; }
+.bgrp { flex: 1; min-width: 0; display: flex; align-items: center; gap: 6px; background: rgba(0, 0, 0, .3); border: 1px solid var(--line); border-radius: 10px; padding: 4px 8px; overflow-x: auto; }
+.bgrp.opp { border-color: var(--gold2); }
+.bgrp .lab { flex: none; font: 700 12.5px var(--sans); color: var(--muted); max-width: 120px; line-height: 1.15; }
+.bgrp .lab b { display: block; color: var(--text); font-size: 13px; }
+.bgrp .none { color: var(--muted); font-size: 12.5px; font-style: italic; }
+.bgrp .card { --w: 54px; flex: none; }
+.bgrp .card.hid { filter: brightness(.8); }
+.bgrp .hidtag { position: absolute; left: 50%; bottom: 3px; transform: translateX(-50%); font: 800 9px var(--sans); background: #231a12; border: 1px solid var(--gold2); border-radius: 6px; padding: 0 3px; white-space: nowrap; }
+/* fenêtres « sur le côté » : on garde le plateau visible pour choisir (ex. Repositionnement) */
+.modal-backdrop.dock { background: transparent; pointer-events: none; place-items: start end; padding: 74px 8px 8px; }
+.modal-backdrop.dock .modal { pointer-events: auto; width: min(320px, 92vw); max-height: calc(100vh - 100px); padding: 12px 14px; border-width: 3px; box-shadow: 0 8px 30px rgba(0, 0, 0, .8); }
+.modal-backdrop.dock .modal h2 { font-size: 17px; }
+.dock-hint { color: var(--muted); font-size: 12.5px; margin: 2px 0 6px; }
+/* Édit de l'Empereur affiché en grand */
+.edict-big { text-align: center; max-width: min(94vw, 760px); }
+.edict-big .card.edict { --w: min(86vw, 660px); margin: 8px auto; cursor: default; }
+.edict-big .now { background: #150f0b; border: 1px solid var(--gold2); border-radius: 12px; padding: 10px 14px; margin: 10px 0 4px; line-height: 1.4; font-size: 16px; }
+.edict-big .now b { color: var(--gold); display: block; margin-bottom: 2px; }
 #panels { flex: 1; min-height: 0; position: relative; margin: 0 8px 8px; }
 .panel { position: absolute; inset: 0; display: flex; overflow: auto; border: 2px solid var(--gold2); border-radius: 0 12px 12px 12px; visibility: hidden; pointer-events: none; }
 .panel.active { visibility: visible; pointer-events: auto; }
@@ -224,7 +244,7 @@ b { font-weight: 700; }
 .nrouge { color: #ff8f84; font-weight: 600; } .nbleu { color: #78b9ff; font-weight: 600; }
 
 /* ---------- bannière / toasts ---------- */
-.banner { position: fixed; left: 0; right: 0; top: 34%; text-align: center; pointer-events: none; z-index: 70; opacity: 0; font: 900 clamp(26px, 5vw, 58px) var(--serif); color: var(--gold); text-shadow: 0 3px 0 #000, 0 0 30px rgba(0, 0, 0, .9); letter-spacing: .04em; }
+.banner { position: fixed; left: 0; right: 0; top: 34%; text-align: center; pointer-events: none; z-index: 40; opacity: 0; font: 900 clamp(26px, 5vw, 58px) var(--serif); color: var(--gold); text-shadow: 0 3px 0 #000, 0 0 30px rgba(0, 0, 0, .9); letter-spacing: .04em; }
 .banner small { display: block; font: 600 clamp(14px, 2vw, 22px) var(--sans); color: #fff; letter-spacing: 0; margin-top: 4px; }
 .banner.show { animation: banner 1.7s ease both; }
 @keyframes banner { 0% { opacity: 0; transform: scale(.85); } 14% { opacity: 1; transform: none; } 78% { opacity: 1; } 100% { opacity: 0; transform: scale(1.05); } }

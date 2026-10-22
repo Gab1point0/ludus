@@ -188,7 +188,7 @@
         players, forum, fosse: { gladiators: [], tactics: [] },
         edictDeck: this.shuffle(Object.keys(EDICTS).map(id => this.mk(id))), edictDiscard: [], edict: null,
         colisee: { zones: [0, 1, 2].map(() => [this.emptySide(), this.emptySide()]), noDeath: [[], [], []] },
-        combat: null, prompts: { 0: null, 1: null }, purchases: [0, 0], wins: [0, 0],
+        combat: null, prompts: { 0: null, 1: null }, purchases: [0, 0], buys: [[], []], wins: [0, 0],
         over: false, winner: null, endReason: '', toss: null,
       };
     }
@@ -310,7 +310,9 @@
       const e = EDICTS[s.edict.def];
       this.say(`Édit de l'Empereur : « ${e.name} ».`);
       this.emit();
-      await this.beat(900);
+      await this.beat(500);
+      // l'Édit s'affiche en grand : chaque laniste doit cliquer pour confirmer qu'il l'a lu avant que ses effets ne s'appliquent
+      await Promise.all([0, 1].map(seat => this.ask(seat, { kind: 'ack', mode: 'edict', title: `Édit de l'Empereur : ${e.name}`, button: 'J\'ai lu', edict: s.edict.def })));
       await this.applyEdictReveal(s.edict.def);
     }
     async applyEdictReveal(id) {
@@ -473,7 +475,7 @@
 
     async preparation() {
       const s = this.s;
-      s.phase = 'preparation'; s.step = ''; s.purchases = [0, 0];
+      s.phase = 'preparation'; s.step = ''; s.purchases = [0, 0]; s.buys = [[], []];
       this.say('— Préparation —');
       const passed = [false, false];
       let cur = s.firstSeat, firstTurn = true;
@@ -518,11 +520,13 @@
       s.purchases[seat]++;
       if (o.from === 'slot') {
         const c = F.slots[o.i]; F.slots[o.i] = null;
+        s.buys[seat].push({ uid: c.uid, def: c.def, pub: true });          // acheté face visible : l'adversaire le voit pendant toute la préparation
         if (o.q === 'tactic') { p.hand.push(c); this.say(`${this.name(seat)} achète la tactique ${this.cname(c)} (${o.price} d.).`); }
         else { p.ludus.push(c); this.say(`${this.name(seat)} achète ${this.cname(c)} (${RANKS[o.q].label}, ${o.price} d.).`); }
       } else {
         const c = this.drawReserve(o.q);
         p.ludus.push(c);
+        s.buys[seat].push({ uid: c.uid, def: c.def, pub: false, q: o.q });  // pioché dans la réserve : l'adversaire ne le voit pas
         this.say(`${this.name(seat)} achète le gladiateur du dessus de la réserve ${RANKS[o.q].label} (${o.price} d.) : ${this.cname(c)}.`, seat);
         this.say(`${this.name(seat)} achète le gladiateur du dessus de la réserve ${RANKS[o.q].label} (${o.price} d.).`, 1 - seat);
       }
@@ -1000,6 +1004,7 @@
       return {
         seat, round: s.round, phase: s.phase, step: s.step, emperor: s.emperor, firstSeat: s.firstSeat, extra: s.extra,
         variant: this.cfg.variantEmperor, wins: s.wins.slice(), over: s.over, winner: s.winner, endReason: s.endReason,
+        buys: [0, 1].map(i => s.buys[i].map(b => (i === seat || b.pub) ? { uid: b.uid, def: b.def, pub: b.pub } : { hidden: true, q: b.q })),
         edict: e ? { def: e.id, name: e.name, text: e.rounds[Math.max(0, Math.min(3, s.round - 1))] } : null,
         edictDeck: s.edictDeck.length,
         players, forum, prices, zones, noDeath: s.colisee.noDeath.map(a => a.slice()),
