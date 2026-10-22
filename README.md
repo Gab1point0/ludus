@@ -32,8 +32,11 @@ Le créateur de la partie doit garder son onglet ouvert pendant toute la partie.
 * Il a été **entraîné par auto-jeu** (des dizaines de milliers de parties ordinateur contre ordinateur, sur tous les cœurs du PC) :
   valeur de chaque gladiateur selon le contenu du ludus (PEGMA, SAGITTARIUS, HOPLOMAQUE…), valeur de chaque tactique, poids de l'argent selon la manche,
   choix des tactiques à poser au Colisée, utilisation des cartes ⚙.
-* **Trois niveaux** : *Difficile* = réglages entraînés ; *Normal* = réglages à moitié oubliés + un peu de hasard (le Difficile le bat ≈ 65 % du temps) ;
-  *Facile* = réglages d'origine + beaucoup de hasard + peu de tactiques (le Difficile le bat ≈ 84 % du temps).
+* **Trois niveaux, qui jouent tous le jeu en entier** (achats de tous les Quartiers, Légendaires compris, cartes ⚙, pose des tactiques) : la difficulté vient de la qualité des décisions, pas de ce qu'ils ignorent.
+  * *Facile* = un joueur débutant : il dépense tout, achète la carte la plus chère qu'il peut se payer (un Légendaire dès qu'il a 5 deniers), sans calculer les synergies, et pose les tactiques de bonus de puissance qu'il comprend. Le Difficile le bat ≈ 82 % du temps.
+  * *Normal* = raisonne comme le Difficile, mais avec des estimations approximatives et un « réflexe Légendaire » : il évalue mal les synergies et peut se tromper. Le Difficile le bat ≈ 68 % du temps ; il bat le Facile ≈ 77 % du temps.
+  * *Difficile* = réglages entraînés par auto-jeu : il achète en fonction de ce que son équipe contient déjà (synergies PEGMA, SAGITTARIUS, HOPLOMAQUE…), de la manche et de son argent.
+  * Vérification : `node tests/buystats.js 400 normal normal` affiche la part des achats par Quartier et le pourcentage de parties sans aucun achat de Légendaire (≈ 1 % à tous les niveaux).
 * Pour ré-entraîner : `node tests/train.js 60 64 800` puis `node tests/apply-trained.js` ; pour recaler les niveaux : `node tests/calibrate.js 3000`.
 
 ## Utilisation en jeu

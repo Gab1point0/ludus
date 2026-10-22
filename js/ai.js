@@ -32,7 +32,7 @@
     provFuture: 0.6, tvScale: 1.5, tacDecay: 0.35, playThr: 0.3,
     placeThr: 0.6, placeThr4: 0.12, eBig: 3, eBig4: 8, eWins: 0.7, eMargin: 0.08, eDead: 0.45,
     gm: {}, tm: {},
-    noise: 0, noisePlace: 0, skipPlace: 0, thr: -3,
+    noise: 0, noisePlace: 0, skipPlace: 0, thr: -3, legBonus: 0,
   };
   // intervalles explorés par l'entraînement : [chemin, min, max]
   const SPEC = [
@@ -51,7 +51,7 @@
   // niveaux : « hard » = paramètres entraînés (PRESET_HARD) ; « normal » et « easy » = mêmes principes, mais estimations dégradées
   let PRESET_HARD = {};
   // Calibrés par tests/calibrate.js : « difficile » gagne ≈ 65 % des parties contre « normal » et ≈ 84 % contre « facile »
-  let PRESET_NORMAL = { blend: 0.5, noise: 1.0, noisePlace: 0.5 };
+  let PRESET_NORMAL = { blend: 0.3, noise: 2.2, noisePlace: 0.8, legBonus: 1.2 };
   let PRESET_EASY = { blend: 1, noise: 2, noisePlace: 1, placeThr: 1.2, placeThr4: 0.5, skipPlace: 0.4 };
   function mergeParams(...objs) {
     const out = clone(DEFAULT_P);
@@ -219,6 +219,8 @@
       }
       const base = meanOf(ludus, round, P);
       const incomeGain = (n < 7 ? 1 : 0) * roundsLeft(round);
+      // « réflexe du joueur normal » : un Légendaire est la carte la plus puissante du Forum, on ne le laisse pas de côté
+      if (o.q === 'legendaire') score += P.legBonus * (round >= 4 ? 0.6 : 1);
       let dMean;
       if (o.from === 'slot') {
         dMean = meanOf(ludus.concat(o.def), round, P) - base;
@@ -241,6 +243,37 @@
       }
       // s'il reste de quoi acheter, on n'arrête pas : l'argent gardé après le Forum ne sert presque jamais
       return best.id;
+    }
+
+    // ---------------- niveau « Facile » : un joueur débutant ----------------
+    // Il joue toutes les phases du jeu, mais avec des réflexes simples : il dépense tout son argent, préfère la carte la plus chère
+    // qu'il peut se payer (un Légendaire dès qu'il a 5 deniers), sans calculer les synergies ; il pose les tactiques qu'il comprend (bonus de puissance).
+    function decidePrepNaive(view, p) {
+      const me = view.seat, hand = view.players[me].hand || [];
+      const buys = p.options.filter(o => o.type === 'buy');
+      const pass = p.options.find(o => o.type === 'pass' || o.type === 'end');
+      const pw = o => (o.def ? (CARDS[o.def].power || 0) : 0) + rnd() * 0.5;
+      const bestOf = list => list.sort((a, b) => pw(b) - pw(a))[0];
+      const glads = r => buys.filter(o => o.q === r);
+      for (const r of ['legendaire', 'aguerri']) {
+        const pool = glads(r); if (pool.length) { const slot = pool.filter(o => o.from === 'slot'); return (slot.length ? bestOf(slot) : pool[0]).id; }
+      }
+      const tacs = buys.filter(o => o.q === 'tactic' && hand.length < 5);
+      const deb = glads('debutant');
+      if (tacs.length && rnd() < 0.4) { const buff = tacs.filter(o => ['pugio', 'lion-apprivoise', 'missio', 'dispense'].includes(baseOf(o.def))); return (buff.length ? buff : tacs)[Math.floor(rnd() * (buff.length || tacs.length))].id; }
+      if (deb.length) { const slot = deb.filter(o => o.from === 'slot'); return (slot.length ? bestOf(slot) : deb[0]).id; }
+      if (tacs.length) return tacs[0].id;
+      return pass.id;
+    }
+    function decidePlaceNaive(view, p) {
+      const me = view.seat;
+      const free = p.options.filter(o => o.type === 'place');
+      const hasGlad = z => { const sd = view.zones[z][me]; return !!(sd.glad && !sd.glad.hidden); };
+      const buffs = free.filter(o => ['pugio', 'lion-apprivoise'].includes(baseOf(o.def)) && hasGlad(o.z));
+      if (buffs.length) return buffs[Math.floor(rnd() * buffs.length)].id;
+      const others = free.filter(o => hasGlad(o.z) && !['summa-rudis', 'transfert', 'a-la-fosse', 'convoi', 'clef-de-la-fosse', 'promotion', 'reservation'].includes(baseOf(o.def)));
+      if (others.length && rnd() < 0.5) return others[Math.floor(rnd() * others.length)].id;
+      return 'pass';
     }
 
     // ---------------- placement de tactiques ----------------
@@ -353,8 +386,8 @@
       const me = view.seat, opts = p.options;
       switch (p.mode) {
         case 'toss': return pickRand(opts).id;
-        case 'prep': return decidePrep(view, p);
-        case 'place': return decidePlace(view, p);
+        case 'prep': return level === 'easy' ? decidePrepNaive(view, p) : decidePrep(view, p);
+        case 'place': return level === 'easy' ? decidePlaceNaive(view, p) : decidePlace(view, p);
         case 'quarter': {
           let best = null, bs = -1;
           for (const o of opts) {
