@@ -119,6 +119,7 @@
     if (p && p.kind === 'choice' && p.mode === 'place' && UI.lastPromptId !== p.id) UI.tab = 'colisee';
     if (p && p.kind === 'choice' && ['zone', 'slot', 'seat', 'order'].includes(p.mode) && UI.lastPromptId !== p.id) UI.tab = 'colisee';
     if (p && p.kind === 'choice' && p.mode === 'quarter' && UI.lastPromptId !== p.id) UI.tab = 'forum';
+    if (p && p.kind === 'choice' && p.mode === 'prep' && p.allowance > 1 && UI.dblSeen !== v.round + ':' + v.seat) { UI.dblSeen = v.round + ':' + v.seat; toast('⭐ Vous êtes premier laniste : vous avez droit à 2 achats d\'affilée ce tour-ci. Tout est normal !', 7000); }
     if (p) UI.lastPromptId = p.id;
     if (!p) UI.selected = null;
     if (p && p.kind === 'choice' && p.mode === 'place' && UI.selected && !p.options.some(o => o.uid === UI.selected)) UI.selected = null;
@@ -364,7 +365,7 @@
     else if (p && p.kind === 'choice' && p.mode === 'prep') {
       act = true;
       const pass = p.options.find(o => o.type === 'pass' || o.type === 'end');
-      text = `<b>Préparation</b> — vous avez ${coin} <b>${p.deniers}</b>. Achetez une carte du Forum (cliquez-la), utilisez une carte <b>⚙</b> de votre main, ou passez.${p.allowance > 1 ? ` <i>(1ᵉʳ tour de la manche 1 : 2 achats possibles${p.bought ? ', 1 déjà fait' : ''})</i>` : ''}`;
+      text = `<b>Préparation</b> — vous avez ${coin} <b>${p.deniers}</b>. Achetez une carte du Forum (cliquez-la), utilisez une carte <b>⚙</b> de votre main, ou passez.${p.allowance > 1 ? ` <span class="dbl">⭐ Premier laniste : vous avez droit à 2 achats d'affilée${p.bought ? ' (1 déjà fait, il en reste 1)' : ''} — tout est normal !</span>` : ''}`;
       btns = `<button class="btn ${p.bought ? 'primary' : ''}" data-act="opt" data-opt="${pass.id}">${esc(pass.label)}</button>`;
     } else if (p && p.kind === 'choice' && p.mode === 'place') {
       act = true;
@@ -447,7 +448,7 @@
     b.classList.remove('show'); void b.offsetWidth; b.classList.add('show');
   }
   let toastT = null;
-  function toast(msg) { const t = $('#toast'); t.textContent = msg; t.classList.add('show'); clearTimeout(toastT); toastT = setTimeout(() => t.classList.remove('show'), 2800); }
+  function toast(msg, ms) { const t = $('#toast'); t.textContent = msg; t.classList.add('show'); clearTimeout(toastT); toastT = setTimeout(() => t.classList.remove('show'), ms || 2800); }
 
   // ============================== fenêtres ==============================
   function openModal(html, o) {
