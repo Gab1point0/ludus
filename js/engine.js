@@ -254,6 +254,12 @@
       return this.ask(seat, Object.assign({ kind: 'cards', title, cards: cards.map(c => this.cardV(c)), min, max }, extra || {}));
     }
     askChoice(seat, title, options, extra) { return this.ask(seat, Object.assign({ kind: 'choice', title, options }, extra || {})); }
+    // ---------- mode tutoriel : pause pédagogique (le panneau de conseils s'affiche, le joueur clique « Suivant ») ----------
+    async tuto(key) {
+      if (!this.cfg.tutorial || !key) return;
+      this.checkAbort();
+      await this.ask(0, { kind: 'ack', mode: 'tuto', key, title: 'Tutoriel', button: 'Suivant ▶' });
+    }
     async ackAll(text, button) {
       await Promise.all([0, 1].map(s => this.ask(s, { kind: 'ack', title: text, button: button || 'Continuer' })));
     }
@@ -263,7 +269,9 @@
     // =====================================================================================
     async run() {
       try {
+        await this.tuto('welcome');
         await this.coinToss(true);
+        await this.tuto('first');
         for (let round = 1; round <= 4 && !this.s.over; round++) {
           this.s.round = round;
           await this.renewal();
@@ -285,7 +293,7 @@
       const pick = await this.askChoice(chooser, 'Choisissez un poing', [
         { id: 'left', label: '🤜 Poing gauche' }, { id: 'right', label: '🤛 Poing droit' }], { mode: 'toss', text: `${this.name(hider)} cache le sesterce dans un poing et un denier dans l'autre.` });
       const sesterceLeft = this.rand() < 0.5;
-      const gotSesterce = (pick === 'left') === sesterceLeft;
+      const gotSesterce = (this.cfg.tutorial && initial) ? true : (pick === 'left') === sesterceLeft;     // tutoriel : le joueur gagne toujours le tirage initial (pour apprendre le double achat)
       const holder = gotSesterce ? chooser : hider;
       s.toss = { hider, chooser, pick, holder };
       s.firstSeat = holder;
@@ -303,15 +311,21 @@
       this.say(`══ Manche ${s.round} ══`);
       if (s.round >= 2) { s.emperor = s.round; this.say(`L'Empereur avance à la marche ${s.round}.`); }
       await this.beat(500);
+      await this.tuto(s.round <= 2 ? 'round' : s.round === 3 ? 'free' : null);
       s.step = 'edict';
       await this.revealEdict();
       s.step = 'forum';
       this.supplyAll();
       await this.beat(500);
+      if (s.round <= 2) await this.tuto('forum');
     }
 
     drawEdict() {
       const s = this.s;
+      if (this.cfg.tutorial && s.round <= 2) {      // tutoriel : Édits simples pour les deux manches guidées
+        const want = s.round === 1 ? 'encouragement' : 'prime-tactique', i = s.edictDeck.findIndex(c => c.def === want);
+        if (i >= 0) return s.edictDeck.splice(i, 1)[0];
+      }
       if (!s.edictDeck.length) { s.edictDeck = this.shuffle(s.edictDiscard); s.edictDiscard = []; }
       return s.edictDeck.shift();
     }
@@ -489,6 +503,7 @@
       const s = this.s;
       s.phase = 'preparation'; s.step = ''; s.purchases = [0, 0]; s.buys = [[], []];
       this.say('— Préparation —');
+      if (s.round <= 2) { await this.tuto('prep'); if (s.round === 1) await this.tuto('hand'); }
       const passed = [false, false];
       let cur = s.firstSeat, firstTurn = true;
       let guard = 0;
@@ -649,10 +664,12 @@
       }
       this.emit();
       await this.beat(1100);
+      if (s.round <= 2) await this.tuto('draw');
       await this.resolveReveals('glad');
       // B : tactiques
       s.step = 'tactics';
       this.say('— Placement des tactiques —');
+      if (s.round <= 2) await this.tuto('tactics');
       await this.placeTactics();
       for (let z = 0; z < 3; z++) for (const seat of [0, 1]) { const side = s.colisee.zones[z][seat]; if (side.tactic) { side.tacticFaceDown = false; side.tactic.done = false; } }
       this.emit();
@@ -814,6 +831,7 @@
       s.combat = { res: this.packCombat(res), shown: 0, done: false };
       this.emit();
       await this.beat(800);
+      if (s.round <= 2) await this.tuto('combat');
       for (let k = 0; k < 3; k++) {
         const d = res.duels[k];
         s.combat.shown = k + 1;
@@ -867,6 +885,7 @@
       s.phase = 'rewards'; s.step = 'victory';
       const prime = this.edictId() === 'prime-de-victoire';
       this.say('— Récompenses —');
+      if (r <= 2) await this.tuto('rewards');
       for (const seat of [0, 1]) {
         const n = res.won[seat] * (prime ? 2 : 1);
         res.duels.forEach(d => { if (d.winner === seat) { const ent = seat === 0 ? d.a : d.b; this.gain(seat, prime ? 2 : 1, `Duel remporté (zone ${d.z + 1})`, { z: d.z, uid: ent && ent.card.uid, def: ent && ent.card.def }); } });
@@ -1040,7 +1059,7 @@
       const e = s.edict ? EDICTS[s.edict.def] : null;
       return {
         seat, round: s.round, phase: s.phase, step: s.step, emperor: s.emperor, firstSeat: s.firstSeat, extra: s.extra,
-        variant: this.cfg.variantEmperor, wins: s.wins.slice(), over: s.over, winner: s.winner, endReason: s.endReason,
+        variant: this.cfg.variantEmperor, tutorial: !!this.cfg.tutorial, wins: s.wins.slice(), over: s.over, winner: s.winner, endReason: s.endReason,
         fx: s.fx.slice(-30),
         buys: [0, 1].map(i => s.buys[i].map(b => (i === seat || b.pub) ? { uid: b.uid, def: b.def, pub: b.pub } : { hidden: true, q: b.q })),
         edict: e ? { def: e.id, name: e.name, text: e.rounds[Math.max(0, Math.min(3, s.round - 1))] } : null,

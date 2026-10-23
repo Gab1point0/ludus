@@ -48,7 +48,7 @@
       this.mode = o.mode;                         // 'ai' | 'hotseat' | 'host'
       this.speed = o.speed || 1;
       this.names = o.names; this.colors = o.colors;
-      this.gameCfg = { advanced: o.advanced, variantEmperor: o.variant, names: o.names, colors: o.colors };
+      this.gameCfg = { tutorial: !!o.tutorial, advanced: o.advanced, variantEmperor: o.variant, names: o.names, colors: o.colors };
       this.humans = [new HumanController(), new HumanController()];
       // l'IA a son propre hasard (indépendant de celui de la partie) : indispensable pour pouvoir rejouer une partie à l'identique
       this.live = o.mode === 'ai' ? [this.humans[0], new AIController(1, AI.create(o.level || 'normal'), () => this.speed)] : this.humans;
@@ -71,7 +71,7 @@
       for (let i = h.length - 1; i >= 0; i--) if (h[i].seat === seat && h[i].kind !== 'ack' && h[i].mode !== 'toss') return i;
       return -1;
     }
-    canUndo(seat) { return !this.finished && !this.game.s.over && !this.undoReq && this.lastOwnIndex(seat) >= 0; }
+    canUndo(seat) { return !this.gameCfg.tutorial && !this.finished && !this.game.s.over && !this.undoReq && this.lastOwnIndex(seat) >= 0; }
     // demande d'annulation faite par « seat » ; l'adversaire doit accepter (l'ordinateur accepte toujours)
     requestUndo(seat) {
       if (!this.canUndo(seat)) return;

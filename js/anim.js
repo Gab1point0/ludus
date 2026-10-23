@@ -57,7 +57,7 @@
   // ---------- fantômes ----------
   function mkGhost(el, rect) {
     const g = el.cloneNode(true);
-    g.classList.remove('can', 'sel', 'dim', 'hcard');
+    g.classList.remove('can', 'sel', 'dim', 'hcard', 'tuto-hl');
     g.removeAttribute('data-act'); g.removeAttribute('data-uid'); g.removeAttribute('data-fkey'); g.removeAttribute('id');
     g.classList.add('anim-ghost');
     Object.assign(g.style, { position: 'fixed', left: rect.left + 'px', top: rect.top + 'px', width: rect.width + 'px', height: rect.height + 'px', margin: '0', zIndex: 460, pointerEvents: 'none', transform: 'none', transition: 'none', '--w': rect.width + 'px' });

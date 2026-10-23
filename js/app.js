@@ -246,6 +246,12 @@
     switch (a) {
       case 'new-ai': openSetup('ai'); break;
       case 'new-hotseat': openSetup('hotseat'); break;
+      case 'new-tuto': {
+        const cfg = cfgFrom('ai', [App.settings.name || root.LudusTheme.trainerName, root.LudusTheme.aiName]);
+        Object.assign(cfg, { level: 'easy', advanced: false, variant: false, speed: 1, tutorial: true });
+        startLocal(cfg);
+        break;
+      }
       case 'new-online': openOnline('create'); break;
       case 'open-help': UI.showHelp('rules'); break;
       case 'cancel': if (App.netHandle && !App.session) { App.netHandle.destroy(); App.netHandle = null; App.conn = null; } UI.closeModal(modal); break;

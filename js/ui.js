@@ -98,6 +98,7 @@
     if (pass != null) return;               // écran de passage : on ne dévoile rien
     const ANI = root.LudusAnim;
     if (ANI) { ANI.auto = false; ANI.begin(UI); }
+    if (root.LudusTutorial) root.LudusTutorial.update(v);
     if (v.undoStamp !== UI.undoStamp) {     // un coup vient d'être annulé : on repart d'un affichage neuf
       if (ANI) ANI.suppress(800);
       UI.undoStamp = v.undoStamp; UI.fxSeen = null; UI.logN = -1; UI.logLen = -1; UI.html = {}; UI.selected = null; UI.promptPid = null; UI.lastPromptId = null;
@@ -140,6 +141,7 @@
     renderUndo(v);
     renderEnd(v);
     renderLost(s);
+    if (root.LudusTutorial) root.LudusTutorial.highlight();
   }
 
   // les duels s'entrechoquent au moment où leur résultat est dévoilé
@@ -375,7 +377,7 @@
     } else if (p && p.kind === 'ack' && (p.mode === 'edict' || p.mode === 'recap')) {
       act = true; text = `<b>${esc(p.title)}</b> — cliquez « ${p.mode === 'edict' ? 'J\'ai lu' : 'Continuer'} » dans la fenêtre pour continuer.`;
     } else if (p && p.kind === 'ack') {
-      act = true; text = `<b>${esc(p.title)}</b>`; btns = `<button class="btn primary" data-act="ack">${esc(p.button || 'Continuer')}</button>`;
+      act = true; text = p.mode === 'tuto' ? '<b>🎓 Tutoriel</b> — lisez le conseil à côté, puis cliquez « Suivant ».' : `<b>${esc(p.title)}</b>`; btns = `<button class="btn primary" data-act="ack">${esc(p.button || 'Continuer')}</button>`;
     } else if (p) { act = true; text = `<b>${esc(p.title || 'À vous de jouer')}</b>`; }
     else {
       const who = v.waiting.filter(s => s !== me);
@@ -628,7 +630,7 @@
     const title = hot ? `${esc(v.players[v.winner].name)} remporte la partie !` : (won ? 'Victoire !' : 'Défaite…');
     openModal(`<div class="end-card"><div class="big">${won || hot ? '🏆' : '💀'}</div><h1>${title}</h1>
       <div class="why">${hot || won ? '' : `${esc(v.players[v.winner].name)} remporte la partie. `}${esc(v.endReason)}</div>
-      <div class="row center"><button class="btn primary" data-act="rematch">⚔ Rejouer</button><button class="btn" data-act="viewboard">Voir le plateau</button><button class="btn" data-act="tomenu">Menu principal</button></div></div>`, { id: 'end', closable: false });
+      ${v.tutorial ? '<p class="tuto-end">🎓 <b>Tutoriel terminé !</b> Vous connaissez maintenant toutes les règles. Lancez une vraie partie contre l\'ordinateur (niveau Normal ou Difficile) depuis le menu principal.</p>' : ''}<div class="row center"><button class="btn primary" data-act="rematch">⚔ Rejouer</button><button class="btn" data-act="viewboard">Voir le plateau</button><button class="btn" data-act="tomenu">Menu principal</button></div></div>`, { id: 'end', closable: false });
   }
   function renderLost(s) {
     const lost = s.connLost && !s.finished;
