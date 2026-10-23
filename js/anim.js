@@ -139,9 +139,12 @@
     return null;
   }
 
+  // onglet réellement affiché à l'écran (et non celui demandé : il change dans render(), après la photo « avant »)
+  const shownTab = () => { const p = $('#panels .panel.active'); return p ? p.id : ''; };
+
   // ---------- cycle ----------
   A.begin = function (UI) {
-    A.sig = signature(UI); A.tab = UI.tab;
+    A.sig = signature(UI); A.tab = shownTab();
     A.prevRows = {};
     document.querySelectorAll('#forum .qrow').forEach(r => { const d = r.querySelector('.pile.depot'); if (d && r.dataset.q) { const b = d.getBoundingClientRect(); if (b.width) A.prevRows[r.dataset.q] = b; } });
     A.prev = (A.mode === 'none') ? null : collect();
@@ -151,7 +154,7 @@
     countersPass(v);
     if (!prev || !active()) return;
     let from = prev;
-    if (A.tab !== UI.tab) {
+    if (A.tab !== shownTab()) {
       // changement d'onglet : seule la mise en scène automatique du Colisée (distribution des gladiateurs) est animée
       if (!(A.auto && UI.tab === 'colisee' && v.phase === 'reveal')) return;
       from = { m: new Map(), byUid: new Map(), bySlot: new Map() };

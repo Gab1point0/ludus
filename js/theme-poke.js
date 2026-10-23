@@ -251,7 +251,7 @@
     if (q('#menu .menu-sub')) q('#menu .menu-sub').innerHTML = poke
       ? 'Devenez le Dresseur le plus puissant de Kanto.<br>Une version Pokémon de <b>LUDUS</b>, par des fans, pour le plaisir.' : 'Soyez le laniste le plus puissant de Rome.<br>Un jeu de <b>Séraphin Gaillard</b> &amp; <b>Gabin Guyot</b>';
     if (q('#menu .menu-foot')) q('#menu .menu-foot').innerHTML = poke
-      ? 'Projet de fans, non officiel : Pokémon et ses personnages appartiennent à Nintendo, Game Freak et The Pokémon Company. Images : PokeAPI/sprites.' : 'Version 1.9.1 · © 2026 Séraphin Gaillard &amp; Gabin Guyot';
+      ? 'Projet de fans, non officiel : Pokémon et ses personnages appartiennent à Nintendo, Game Freak et The Pokémon Company. Images : PokeAPI/sprites.' : 'Version 1.9.2 · © 2026 Séraphin Gaillard &amp; Gabin Guyot';
     if (poke) walk(document.body);
   }
   T.set = set;
