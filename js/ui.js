@@ -96,7 +96,10 @@
     if (!v) { renderWaiting(); return; }
     UI.view = v;
     if (pass != null) return;               // écran de passage : on ne dévoile rien
+    const ANI = root.LudusAnim;
+    if (ANI) { ANI.auto = false; ANI.begin(UI); }
     if (v.undoStamp !== UI.undoStamp) {     // un coup vient d'être annulé : on repart d'un affichage neuf
+      if (ANI) ANI.suppress(800);
       UI.undoStamp = v.undoStamp; UI.fxSeen = null; UI.logN = -1; UI.logLen = -1; UI.html = {}; UI.selected = null; UI.promptPid = null; UI.lastPromptId = null;
       closeAll(m => ['prompt', 'confirm'].includes(m.dataset.mid));
     }
@@ -106,6 +109,7 @@
     const key = `${v.round}|${v.phase}|${v.step}`;
     if (key !== UI.autoKey) {
       UI.autoKey = key;
+      if (ANI) ANI.auto = true;
       UI.tab = ['reveal', 'combat', 'rewards'].includes(v.phase) ? 'colisee' : 'forum';
       UI.selected = null;
       showBanner(v);
@@ -128,12 +132,26 @@
     renderPromptBar(v, p);
     renderLog(v);
     renderBuys(v);
+    if (ANI) { ANI.end(UI, v); clashes(v); }
     processFx(v);
     if (UI.hoverEl && !document.contains(UI.hoverEl)) hidePreview();     // la carte survolée a disparu : on ferme son aperçu
     renderPromptModal(v, p);
     renderUndo(v);
     renderEnd(v);
     renderLost(s);
+  }
+
+  // les duels s'entrechoquent au moment où leur résultat est dévoilé
+  function clashes(v) {
+    const c = v.combat;
+    if (!c || !c.res) { UI.clashKey = null; return; }
+    const key = v.round + ':' + (v.extra || 0);
+    if (key !== UI.clashKey) { UI.clashKey = key; UI.clashShown = c.shown > 1 ? c.shown : 0; }
+    for (let z = UI.clashShown; z < c.shown; z++) {
+      const d = c.res.duels[z];
+      if (d && !d.empty) setTimeout(() => root.LudusAnim.clash(z, d.winner, v), 30 + (z - UI.clashShown) * 80);
+    }
+    UI.clashShown = Math.max(UI.clashShown, c.shown);
   }
 
   function renderWaiting() {
@@ -147,7 +165,7 @@
       const p = P[seat];
       return `<div class="pchip ${cls} ${v.waiting.includes(seat) && !v.over ? 'turn' : ''}" style="--pc:${pHex(p.color)}">
         <span class="dot"></span><span class="nm">${esc(p.name)}</span>
-        <span class="st"><span title="Deniers">${coin} <b>${p.deniers}</b></span><span title="Gladiateurs dans le ludus">🏺 ${p.ludusCount}</span><span title="Tactiques en main">🃏 ${p.handCount}</span></span>
+        <span class="st"><span title="Deniers">${coin} <b data-ck="den${seat}">${p.deniers}</b></span><span title="Gladiateurs dans le ludus">🏺 ${p.ludusCount}</span><span title="Tactiques en main">🃏 ${p.handCount}</span></span>
         ${v.firstSeat === seat && v.round ? '<span class="sester" title="Sesterce : premier laniste">Sesterce</span>' : ''}</div>`;
     };
     const steps = [1, 2, 3, 4].map(i => `<span class="step ${i === v.emperor ? 'on' : i < v.emperor ? 'past' : ''}">${i}</span>`).join('');
@@ -226,7 +244,7 @@
         } else lab = `réserve <span class="pv ${rc}">${coin} ${pr.reserve}${arrow(rc)}</span> par gladiateur`;
         if (sc || rc) lab += ` <i class="was">(normalement ${basePrice})</i>`;
       }
-      h += `<div class="qrow" style="--q:${col}"><div class="qlabel">${QUARTIERS[q].label}<small>${lab}</small></div>
+      h += `<div class="qrow" data-q="${q}" style="--q:${col}"><div class="qlabel">${QUARTIERS[q].label}<small>${lab}</small></div>
         <div class="qline">${res}<span class="arrowb">▶</span>${slots}<span class="arrowb">▶</span>${dep}</div></div>`;
     }
     return h + '</div>';
@@ -283,16 +301,17 @@
       const dir = seat === me ? 1 : -1;
       const renf = (zn.renforts || []).map((r, i) => `<div class="card" data-def="${r.def}" style="top:${dir * (9 + i * 9)}px;left:${(i % 2 ? 4 : -4)}px;z-index:0">${faceImg(r.def)}</div>`).join('');
       const wrapper = zn.renforts && zn.renforts.length ? `<div class="renfwrap" title="${zn.renforts.length} gladiateur(s) en renfort">${renf}</div>` : '';
-      return `<div class="gslot" data-z="${z}" data-seat="${seat}">${wrapper}${inner}</div>`;
+      return `<div class="gslot" data-z="${z}" data-seat="${seat}" data-slot="g${z}${seat}" data-s="${seat}">${wrapper}${inner}</div>`;
     };
     const tslot = (z, seat) => {
       const zn = v.zones[z][seat]; const t = zn.tactic;
       const target = seat === me && !t && slotTargets.has(z);
       if (!t) return `<div class="gslot tac ${target ? 'target' : ''}" ${target ? `data-act="place" data-z="${z}"` : ''}>${target ? '＋' : '◆'}</div>`;
-      if (t.hidden) return `<div class="gslot tac">${cardHTML(null, { back: 'tactic' })}</div>`;
+      const ts = `data-slot="t${z}${seat}" data-s="${seat}"`;
+      if (t.hidden) return `<div class="gslot tac" ${ts}>${cardHTML(null, { back: 'tactic' })}</div>`;
       const den = t.deniers ? `<span class="chip-deniers">${coin} ${t.deniers}</span>` : '';
       const fd = t.faceDown ? '<span class="chip-deniers mid">face cachée</span>' : '';
-      return `<div class="gslot tac">${cardHTML(t.def, { uid: t.uid, big, cls: t.faceDown ? 'dim' : '', inner: den + fd })}</div>`;
+      return `<div class="gslot tac" ${ts}>${cardHTML(t.def, { uid: t.uid, big, cls: t.faceDown ? 'dim' : '', inner: den + fd })}</div>`;
     };
     let lanes = '';
     for (let z = 0; z < 3; z++) {
@@ -531,6 +550,7 @@
       <label class="check"><input type="checkbox" id="opt-calc" ${UI.settings.calc ? 'checked' : ''}><span>Afficher la puissance calculée des gladiateurs<small>Aide au calcul pendant la révélation (les tactiques adverses cachées ne sont pas comptées)</small></span></label>
       <div class="field"><label for="opt-vol">🔊 Volume des sons</label><input type="range" id="opt-vol" min="0" max="100" value="${Math.round(root.LudusSfx.S.volume * 100)}"></div>
       <label class="check"><input type="checkbox" id="opt-amb" ${root.LudusSfx.S.ambient ? 'checked' : ''}><span>Ambiance de l'arène<small>Murmure lointain de la foule, très discret</small></span></label>
+      <div class="field"><label for="opt-anim">✨ Animations</label><select id="opt-anim"><option value="full"${root.LudusAnim.mode === 'full' ? ' selected' : ''}>Complètes</option><option value="reduced"${root.LudusAnim.mode === 'reduced' ? ' selected' : ''}>Réduites</option><option value="none"${root.LudusAnim.mode === 'none' ? ' selected' : ''}>Aucune</option></select></div>
       <button class="btn danger" data-act="quit">🚪 Abandonner la partie</button></div>`, { id: 'gmenu' });
   }
   // ---------- animation des gains / pertes de deniers : « +2 ₽ » qui s'envole depuis la carte (ou le joueur) concerné ----------
@@ -758,6 +778,7 @@
     document.addEventListener('change', e => {
       if (e.target.id === 'opt-vol') root.LudusSfx.play('clash', 0, 0.6);
       if (e.target.id === 'opt-amb') root.LudusSfx.setAmbient(e.target.checked);
+      if (e.target.id === 'opt-anim') { root.LudusAnim.setMode(e.target.value); document.body.classList.toggle('anim-none', e.target.value === 'none'); }
     });
     updateSoundButtons();
     document.addEventListener('change', e => { if (e.target.id === 'opt-calc') { UI.settings.calc = e.target.checked; try { localStorage.setItem('ludus.calc', e.target.checked ? '1' : '0'); } catch (x) { /* ignore */ } render(); } });

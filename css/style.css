@@ -324,3 +324,33 @@ b { font-weight: 700; }
   .edict-chip { max-width: 100%; }
 }
 @media (hover: none) { .hcard:hover { transform: none; } }
+
+/* ---------- fluidité : animations (voir js/anim.js) ---------- */
+.panel.active { animation: panelIn .38s cubic-bezier(.22, .9, .28, 1); }
+@keyframes panelIn { from { opacity: 0; transform: translateY(10px) scale(.992); } to { opacity: 1; transform: none; } }
+.anim-ghost { box-shadow: 0 14px 28px rgba(0, 0, 0, .55), 0 0 0 1px rgba(255, 226, 122, .35) !important; will-change: transform, opacity; }
+.pchip .st b { display: inline-block; min-width: 1ch; transition: color .3s; }
+.pchip .st b.bump-up { animation: bumpUp .9s ease-out; }
+.pchip .st b.bump-down { animation: bumpDown .9s ease-out; }
+@keyframes bumpUp { 0% { transform: scale(1); } 20% { transform: scale(1.7); color: #8df0a6; text-shadow: 0 0 10px #4ade80; } 100% { transform: scale(1); } }
+@keyframes bumpDown { 0% { transform: scale(1); } 20% { transform: scale(1.5); color: #ff8e80; text-shadow: 0 0 10px #f87171; } 100% { transform: scale(1); } }
+.lmid .res { animation: stamp .5s cubic-bezier(.2, 1.4, .4, 1) both; }
+@keyframes stamp { from { transform: scale(2.2) rotate(-8deg); opacity: 0; } to { transform: none; opacity: 1; } }
+.gslot > .card.win { box-shadow: 0 0 16px 4px rgba(255, 226, 122, .85); }
+.btn { transition: transform .12s, filter .15s, box-shadow .15s; }
+.btn:active:not(:disabled) { transform: scale(.95); }
+.iconbtn { transition: transform .12s, filter .15s; }
+.iconbtn:active:not(:disabled) { transform: scale(.9); }
+#tabs button { transition: background .25s, color .25s, transform .15s; }
+.price, .pv { transition: color .3s; }
+.bgrp .card { transition: transform .15s, box-shadow .15s; }
+.modal-backdrop { animation: backIn .22s ease-out; }
+@keyframes backIn { from { opacity: 0; } to { opacity: 1; } }
+.edict-chip { animation: chipIn .5s cubic-bezier(.22, .9, .28, 1); }
+@keyframes chipIn { from { opacity: 0; transform: translateX(-14px); } to { opacity: 1; transform: none; } }
+.steps .step.on { animation: stepOn .7s cubic-bezier(.2, 1.4, .4, 1); }
+@keyframes stepOn { from { transform: scale(.5); } to { transform: none; } }
+@media (prefers-reduced-motion: reduce) {
+  .panel.active, .lmid .res, .edict-chip, .steps .step.on { animation-duration: .01s; }
+}
+body.anim-none *, body.anim-none *::before, body.anim-none *::after { animation-duration: .01s !important; animation-delay: 0s !important; transition-duration: .01s !important; }
