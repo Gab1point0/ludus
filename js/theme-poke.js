@@ -7,10 +7,10 @@
   const { CARDS, RANKS, QUARTIERS, EDICTS } = D;
 
   // images copiées dans le projet (assets/poke/), issues de PokeAPI/sprites
-  const ART = id => `assets/poke/pokemon/${id}.webp?v=2`;
+  const ART = id => `assets/poke/pokemon/${id}.webp?v=3`;
   // objets : illustrations Gemini (webp) quand elles existent, sinon sprite PokeAPI (png)
   const HD_ITEMS = new Set(['protein', 'pokemon-box-link', 'tm-case', 'focus-sash', 'storage-key']);
-  const ITEM = n => (HD_ITEMS.has(n) ? `assets/poke/items/${n}.webp?v=2` : `assets/poke/items/${n}.png`);
+  const ITEM = n => (HD_ITEMS.has(n) ? `assets/poke/items/${n}.webp?v=3` : `assets/poke/items/${n}.png`);
   const TYPE_COLOR = { Normal: '#A8A878', Feu: '#F08030', Eau: '#6890F0', 'Électrik': '#F8D030', Plante: '#78C850', Glace: '#98D8D8', Combat: '#C03028', Poison: '#A040A0', Sol: '#E0C068', Vol: '#A890F0', Psy: '#F85888', Insecte: '#A8B820', Roche: '#B8A038', Spectre: '#705898', Dragon: '#7038F8', 'Ténèbres': '#705848', Acier: '#B8B8D0', 'Fée': '#EE99AC' };
 
   // ---------- gladiateurs -> Pokémon (nom français, n° du Pokédex, types, lien avec l'effet) ----------
@@ -47,7 +47,7 @@
     convoi: ['Livraison du Poké Marché', 'item', 'tm-case', 'Le camion de livraison renouvelle un rayon entier.'],
     missio: ['Ceinture Force', 'item', 'focus-sash', 'Le Pokémon tient bon : il ne sera pas mis K.O.'],
     'clef-de-la-fosse': ['Accès au PC', 'item', 'storage-key', 'On récupère un objet rangé dans le PC.'],
-    complices: ['Team Rocket', 'img', 'assets/poke/items/team-rocket.webp?v=2','Les complices de la Team Rocket : à payer pour qu\'ils aident.'],
+    complices: ['Team Rocket', 'img', 'assets/poke/items/team-rocket.webp?v=3','Les complices de la Team Rocket : à payer pour qu\'ils aident.'],
     datura: ['Cloche Écho', 'item', 'shell-bell', 'L\'écho répète les effets du Pokémon une seconde fois.'],
     dispense: ['Poké Ball', 'item', 'poke-ball', 'On rappelle le Pokémon et on en envoie un autre.'],
     'lion-apprivoise': ['Bandeau Choix', 'item', 'choice-band', 'Un grand boost de puissance (+2).'],
@@ -253,7 +253,7 @@
     if (q('#menu .menu-sub')) q('#menu .menu-sub').innerHTML = poke
       ? 'Devenez le Dresseur le plus puissant de Kanto.<br>Une version Pokémon de <b>LUDUS</b>, par des fans, pour le plaisir.' : 'Soyez le laniste le plus puissant de Rome.<br>Un jeu de <b>Séraphin Gaillard</b> &amp; <b>Gabin Guyot</b>';
     if (q('#menu .menu-foot')) q('#menu .menu-foot').innerHTML = poke
-      ? 'Projet de fans, non officiel : Pokémon et ses personnages appartiennent à Nintendo, Game Freak et The Pokémon Company. Images : PokeAPI/sprites.' : 'Version 1.11 · © 2026 Séraphin Gaillard &amp; Gabin Guyot';
+      ? 'Projet de fans, non officiel : Pokémon et ses personnages appartiennent à Nintendo, Game Freak et The Pokémon Company. Images : PokeAPI/sprites.' : 'Version 1.11.1 · © 2026 Séraphin Gaillard &amp; Gabin Guyot';
     if (poke) walk(document.body);
   }
   T.set = set;

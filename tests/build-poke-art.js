@@ -57,7 +57,7 @@ function render(srcPath, size, keepScene) {
     if (o.group === 'object') {
       const ITEMFILE = { 'ob-protein': 'protein', 'ob-envoyer-au-pc': 'pokemon-box-link', 'ob-livraison': 'tm-case', 'ob-ceinture-force': 'focus-sash', 'ob-acces-pc': 'storage-key', 'ob-team-rocket': 'team-rocket', 'ob-cloche-echo': 'shell-bell', 'ob-poke-ball': 'poke-ball', 'ob-bandeau-choix': 'choice-band', 'ob-pierre-evolution': 'fire-stone', 'ob-changement': 'ultra-ball', 'ob-rapide-ball': 'quick-ball', 'ob-officier-jenny': 'officier-jenny', 'ob-echange': 'master-ball' };
       dest = path.join(OUT, 'items', ITEMFILE[o.slug] + '.webp');
-      fs.writeFileSync(dest, await render(src, SIZE.item, ['ob-ceinture-force', 'ob-livraison', 'ob-acces-pc', 'ob-envoyer-au-pc'].includes(o.slug)));
+      fs.writeFileSync(dest, await render(src, SIZE.item, false));
     } else {
       dest = path.join(OUT, 'pokemon', o.dex + '.webp');
       fs.writeFileSync(dest, await render(src, SIZE.pokemon, false));
