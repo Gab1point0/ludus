@@ -9,7 +9,8 @@ const manifest = JSON.parse(fs.readFileSync(path.join(SRC, 'manifest.json'), 'ut
 const SIZE = { pokemon: 440, item: 420 };
 
 function findSrc(o) {
-  const png = path.join(SRC, 'lot1-1024', o.slug + '-01.png'); if (fs.existsSync(png)) return png;
+  const lots = fs.readdirSync(SRC).filter(d => /^lot\d+-1024$/.test(d)).sort().reverse();      // lots les plus récents d'abord
+  for (const l of lots) { const png = path.join(SRC, l, o.slug + '-01.png'); if (fs.existsSync(png)) return png; }
   const jpg = path.join(SRC, o.slug + '-01.jpg'); if (fs.existsSync(jpg)) return jpg;
   return null;
 }
