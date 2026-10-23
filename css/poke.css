@@ -127,3 +127,6 @@ body.theme-poke .card.edict { aspect-ratio: 820 / 586; }
 .pk-back-e { background: linear-gradient(160deg, #3b2a8f, #1b1450); }
 .pk-back-e::after { content: '★'; font-size: 30cqw; color: #ffcb05; }
 body.theme-poke .card.pop, body.theme-poke .card { box-shadow: 0 2px 7px rgba(0, 0, 0, .55); }
+/* illustrations Gemini (HD) : pas de rendu « pixel », plus grandes dans le cadre */
+.pk-art img.pk-item.hd { left: 4%; top: 4%; width: 92%; height: 92%; image-rendering: auto; }
+.pk-art img.pk-logo { left: 4%; top: 4%; width: 92%; height: 92%; }
