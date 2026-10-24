@@ -771,7 +771,8 @@
       if (raf) return;
       raf = requestAnimationFrame(() => {
         raf = 0;
-        const t = e.target.closest && e.target.closest(HOVER_SEL);
+        let t = e.target.closest && e.target.closest(HOVER_SEL);
+        if (t && t.matches('[data-edict]') && t.closest('.edict-big, .libcard')) t = null;      // l'Édit est déjà affiché en grand : pas d'aperçu en plus
         if (!t) { if (UI.hoverEl) hidePreview(); return; }
         if (t !== UI.hoverEl) { UI.hoverEl = t; showPreview(t); }
       });
