@@ -10,7 +10,7 @@
     S.enabled = localStorage.getItem('ludus.sound') !== '0';
     const mv = localStorage.getItem('ludus.mvol'); if (mv != null && mv !== '') S.musicVolume = Math.max(0, Math.min(1, Number(mv) / 100));
     const v = localStorage.getItem('ludus.vol'); if (v != null && v !== '') S.volume = Math.max(0, Math.min(1, Number(v) / 100));
-    S.ambient = localStorage.getItem('ludus.amb') !== '0';
+    S.ambient = true;      // la musique n'a plus d'interrupteur : son curseur de volume suffit (0 = silence)
   } catch (e) { /* ignore */ }
 
   const rnd = (a, b) => a + Math.random() * (b - a);
