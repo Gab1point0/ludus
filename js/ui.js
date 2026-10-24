@@ -551,7 +551,8 @@
       <button class="btn" data-act="close">▶ Reprendre la partie</button>
       <button class="btn" data-act="help">📖 Règles et cartes</button>
       <label class="check"><input type="checkbox" id="opt-calc" ${UI.settings.calc ? 'checked' : ''}><span>Afficher la puissance calculée des gladiateurs<small>Aide au calcul pendant la révélation (les tactiques adverses cachées ne sont pas comptées)</small></span></label>
-      <div class="field"><label for="opt-vol">🔊 Volume des sons</label><input type="range" id="opt-vol" min="0" max="100" value="${Math.round(root.LudusSfx.S.volume * 100)}"></div>
+      <div class="field"><label for="opt-vol">🔊 Volume des bruitages</label><input type="range" id="opt-vol" min="0" max="100" value="${Math.round(root.LudusSfx.S.volume * 100)}"></div>
+      <div class="field"><label for="opt-mvol">🎵 Volume de la musique</label><input type="range" id="opt-mvol" min="0" max="100" value="${Math.round(root.LudusSfx.S.musicVolume * 100)}"></div>
       <label class="check"><input type="checkbox" id="opt-amb" ${root.LudusSfx.S.ambient ? 'checked' : ''}><span>${TH() ? 'Musique d\'ambiance<small>Petite musique d\'aventure en fond (désactivable ici)</small>' : 'Musique d\'ambiance<small>Musique épique de gladiateurs en fond (désactivable ici)</small>'}</span></label>
       <div class="field"><label for="opt-anim">✨ Animations</label><select id="opt-anim"><option value="full"${root.LudusAnim.mode === 'full' ? ' selected' : ''}>Complètes</option><option value="reduced"${root.LudusAnim.mode === 'reduced' ? ' selected' : ''}>Réduites</option><option value="none"${root.LudusAnim.mode === 'none' ? ' selected' : ''}>Aucune</option></select></div>
       <button class="btn danger" data-act="quit">🚪 Abandonner la partie</button></div>`, { id: 'gmenu' });
@@ -778,7 +779,7 @@
       });
     });
     $('#tabs').addEventListener('click', e => { const b = e.target.closest('button[data-tab]'); if (b) { UI.tab = b.dataset.tab; render(); } });
-    document.addEventListener('input', e => { if (e.target.id === 'opt-vol') root.LudusSfx.setVolume(Number(e.target.value) / 100); });
+    document.addEventListener('input', e => { if (e.target.id === 'opt-vol') root.LudusSfx.setVolume(Number(e.target.value) / 100); if (e.target.id === 'opt-mvol') root.LudusSfx.setMusicVolume(Number(e.target.value) / 100); });
     document.addEventListener('change', e => {
       if (e.target.id === 'opt-vol') root.LudusSfx.play('clash', 0, 0.6);
       if (e.target.id === 'opt-amb') root.LudusSfx.setAmbient(e.target.checked);

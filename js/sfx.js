@@ -3,11 +3,12 @@
 (function (root) {
   'use strict';
   const S = {
-    enabled: true, volume: 0.7, ambient: true, ctx: null, master: null, ambNodes: null,
+    enabled: true, volume: 0.7, musicVolume: 0.7, ambient: true, mus: null, ctx: null, master: null, ambNodes: null,
     primed: false, lastLogN: 0, lastPid: null, lastShown: 0, overDone: false, noise: new WeakMap(),
   };
   try {
     S.enabled = localStorage.getItem('ludus.sound') !== '0';
+    const mv = localStorage.getItem('ludus.mvol'); if (mv != null && mv !== '') S.musicVolume = Math.max(0, Math.min(1, Number(mv) / 100));
     const v = localStorage.getItem('ludus.vol'); if (v != null && v !== '') S.volume = Math.max(0, Math.min(1, Number(v) / 100));
     S.ambient = localStorage.getItem('ludus.amb') !== '0';
   } catch (e) { /* ignore */ }
@@ -173,11 +174,12 @@
       const comp = c.createDynamicsCompressor();
       comp.threshold.value = -14; comp.knee.value = 20; comp.ratio.value = 6; comp.attack.value = 0.004; comp.release.value = 0.25;
       master.connect(comp); comp.connect(c.destination);
+      const mus = c.createGain(); mus.connect(comp); S.mus = mus;      // la musique a son propre volume, indépendant des bruitages
       S.ctx = c; S.master = master; applyVolume();
     } catch (e) { S.ctx = null; }
     return S.ctx;
   }
-  function applyVolume() { if (S.master) S.master.gain.value = S.enabled ? 0.9 * S.volume : 0; if (S.ambNodes) S.ambNodes.gain.gain.value = S.enabled && S.ambient ? 1 : 0; }
+  function applyVolume() { if (S.master) S.master.gain.value = S.enabled ? 0.9 * S.volume : 0; if (S.mus) S.mus.gain.value = S.enabled && S.ambient ? 0.9 * S.musicVolume : 0; if (S.ambNodes) S.ambNodes.gain.gain.value = S.enabled && S.ambient ? 1 : 0; }
   function play(name, delay, vol) {
     if (!S.enabled || !V[name]) return;
     const c = ensure(); if (!c) return;
@@ -194,7 +196,7 @@
   function startAmbient() {
     if (S.ambNodes || !S.enabled || !S.ambient) return;
     const c = ensure(); if (!c || !root.LudusAmbience) return;
-    const gain = c.createGain(); gain.gain.value = 1; gain.connect(S.master);
+    const gain = c.createGain(); gain.gain.value = 1; gain.connect(S.mus || S.master);
     const kind = root.LudusTheme && root.LudusTheme.active ? 'poke' : 'arena';       // Poké-Ludus : petite musique ; LUDUS : foule de l'arène
     let inst = null;
     try { inst = root.LudusAmbience.start(c, gain, kind); } catch (e) { console.warn('ambiance', e); }
@@ -257,10 +259,11 @@
   }
 
   // ---------- réglages ----------
-  function save() { try { localStorage.setItem('ludus.sound', S.enabled ? '1' : '0'); localStorage.setItem('ludus.vol', String(Math.round(S.volume * 100))); localStorage.setItem('ludus.amb', S.ambient ? '1' : '0'); } catch (e) { /* ignore */ } }
+  function save() { try { localStorage.setItem('ludus.sound', S.enabled ? '1' : '0'); localStorage.setItem('ludus.vol', String(Math.round(S.volume * 100))); localStorage.setItem('ludus.mvol', String(Math.round(S.musicVolume * 100))); localStorage.setItem('ludus.amb', S.ambient ? '1' : '0'); } catch (e) { /* ignore */ } }
   function setEnabled(on) { S.enabled = !!on; save(); applyVolume(); if (on) { ensure(); startAmbient(); } else stopAmbient(); }
   function setVolume(x) { S.volume = Math.max(0, Math.min(1, x)); save(); applyVolume(); }
-  function setAmbient(on) { S.ambient = !!on; save(); if (on) startAmbient(); else stopAmbient(); }
+  function setMusicVolume(x) { S.musicVolume = Math.max(0, Math.min(1, x)); save(); applyVolume(); }
+  function setAmbient(on) { S.ambient = !!on; save(); applyVolume(); if (on) startAmbient(); else stopAmbient(); }
   // le navigateur n'autorise le son qu'après un premier clic
   function unlock() { const c = ensure(); if (c && c.state === 'suspended') c.resume(); }
   if (typeof document !== 'undefined') ['pointerdown', 'keydown', 'touchstart'].forEach(ev => document.addEventListener(ev, unlock, { passive: true }));
@@ -274,5 +277,5 @@
     return c.startRendering().then(b => b.getChannelData(0));
   }
 
-  root.LudusSfx = { S, V, play, playDuel, onView, reset, startAmbient, stopAmbient, setEnabled, setVolume, setAmbient, renderOffline, unlock, names: Object.keys(V) };
+  root.LudusSfx = { S, V, play, playDuel, onView, reset, startAmbient, stopAmbient, setEnabled, setVolume, setMusicVolume, setAmbient, renderOffline, unlock, names: Object.keys(V) };
 })(typeof window !== 'undefined' ? window : globalThis);
