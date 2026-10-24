@@ -465,7 +465,7 @@
     function decideChoice(view, p) {
       const me = view.seat, opts = p.options;
       switch (p.mode) {
-        case 'toss': return pickRand(opts).id;
+        case 'toss': case 'tosshide': return pickRand(opts).id;
         case 'prep': return level === 'easy' ? decidePrepNaive(view, p) : decidePrep(view, p);
         case 'place': return level === 'easy' ? decidePlaceNaive(view, p) : decidePlace(view, p);
         case 'quarter': {

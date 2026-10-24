@@ -473,10 +473,36 @@
   // suivre les mains ou les Poké Balls des yeux ne donne aucun indice (même la pièce saisie par chaque main est tirée au sort à l'écran).
   function tossItemHTML(side, ball, sesSide) {
     const lab = ball ? (side === 'left' ? 'Poké Ball de gauche' : 'Poké Ball de droite') : (side === 'left' ? 'Poing gauche' : 'Poing droit');
-    return `<button class="toss-item ${side}" data-act="opt" data-opt="${side}" aria-label="${lab}"><span class="ti-in"><span class="ti-body">${ball ? TBALL : `<span class="tfist">${side === 'left' ? '🤜' : '🤛'}</span>`}</span><span class="ti-coin">${tossCoin(side === sesSide)}</span><span class="ti-lab">${lab}</span></span></button>`;
+    return `<button class="toss-item ${side}" data-act="opt" data-opt="${side}" aria-label="${lab}"><span class="ti-in"><span class="ti-body">${ball ? TBALL : `<span class="tfist"><span class="f-closed">${side === 'left' ? '🤜' : '🤛'}</span><span class="f-open">✋</span></span>`}</span><span class="ti-coin">${tossCoin(side === sesSide)}</span><span class="ti-lab">${lab}</span></span></button>`;
   }
   // déroulé : 1) le sesterce et le denier apparaissent (les Poké Balls s'ouvrent)  2) chaque main / Poké Ball en saisit un  3) on mélange  4) le joueur choisit
+  // l'autre joueur (humain) a caché le sesterce lui-même : on lui présente directement les deux mains / Poké Balls fermées
+  function openTossQuick(v, p) {
+    const ball = !!TH(), hider = esc(v.players[1 - v.seat].name);
+    UI.tossPick = null; UI.tossLogN = v.log.length ? v.log[v.log.length - 1].n : 0;
+    const html = `<div class="toss"><h2>Qui commence ?</h2>
+      <p class="toss-txt"><b>${hider}</b> a caché le <b>sesterce</b> dans ${ball ? 'l\'une des Poké Balls' : 'l\'un des poings'} et un <b>denier</b> dans l'autre.</p>
+      <div class="toss-stage ready">${tossItemHTML('left', ball, '')}${tossItemHTML('right', ball, '')}</div>
+      <p class="toss-hint">Devinez où il est : cliquez sur ${ball ? 'la <b>Poké Ball</b>' : 'le <b>poing</b>'} de votre choix !<br><small>Si vous tombez sur le même que ${hider}, vous commencez.</small></p></div>`;
+    const el = openModal(html, { id: 'toss', closable: false, cls: 'toss-scene' });
+    el.querySelectorAll('.ti-coin').forEach(c => { c.innerHTML = ''; });
+    if (root.LudusSfx) root.LudusSfx.play('blip', 0.5, 0.8);
+  }
+  // le joueur qui cache choisit en secret la main (ou la Poké Ball) qui recevra le sesterce
+  function openHideScene(v, p) {
+    const ball = !!TH(), other = esc(v.players[1 - v.seat].name);
+    UI.tossPick = null;
+    const html = `<div class="toss"><h2>Cachez le sesterce</h2>
+      <p class="toss-txt">Choisissez en secret ${ball ? 'la Poké Ball' : 'le poing'} qui recevra le <b>sesterce</b> ; le <b>denier</b> ira dans l'autre.<br><b>${other}</b> devra deviner : s'il tombe sur le même que vous, c'est lui qui commence.</p>
+      <div class="toss-stage intro hiding ready">${tossItemHTML('left', ball, 'left')}${tossItemHTML('right', ball, 'left')}</div>
+      <p class="toss-hint">Cliquez sur ${ball ? 'la <b>Poké Ball</b>' : 'le <b>poing</b>'} qui recevra le <b>sesterce</b>.</p></div>`;
+    const el = openModal(html, { id: 'toss', closable: false, cls: 'toss-scene' });
+    el.dataset.hide = '1';
+    el.querySelectorAll('.toss-item').forEach(i => i.classList.add('hold'));
+    if (root.LudusSfx) { root.LudusSfx.play('ding', 0.1, 0.7); if (ball) root.LudusSfx.play('tick', 0.15, 0.9); }
+  }
   function openTossScene(v, p) {
+    if (p.hiderHuman) return openTossQuick(v, p);
     const ball = !!TH(), hider = esc(v.players[1 - v.seat].name);
     const last = v.log.length ? v.log[v.log.length - 1].n : 0;
     UI.tossPick = null; UI.tossLogN = last;
@@ -523,12 +549,13 @@
   // renvoie true quand la scène du tirage gère l'écran (question en cours, ou révélation du résultat)
   function tossFlow(v, p) {
     const ex = $('#overlay-root .modal-backdrop[data-mid="toss"]');
-    if (p && p.kind === 'choice' && p.mode === 'toss') {
+    if (p && p.kind === 'choice' && (p.mode === 'toss' || p.mode === 'tosshide')) {
       const old = $('#overlay-root .modal-backdrop[data-mid="prompt"]'); if (old) closeModal(old);
-      if (!ex) openTossScene(v, p);
+      if (!ex) (p.mode === 'tosshide' ? openHideScene : openTossScene)(v, p);
       return true;
     }
     if (!ex) return false;
+    if (ex.dataset.hide) return false;           // scène « cacher le sesterce » : elle se ferme toute seule après son animation
     if (!UI.tossPick) { closeModal(ex); return false; }
     if (!ex.dataset.revealed) {
       const fresh = (v.log || []).some(l => l.n > UI.tossLogN && /choisit le poing/.test(l.text));
@@ -790,6 +817,15 @@
       }
       case 'opt': {
         const ts = el.closest('.toss-scene');
+        if (ts && ts.querySelector('.toss-stage.hiding')) {      // celui qui cache : le sesterce tombe dans la main (ou la Poké Ball) choisie, le denier dans l'autre
+          if (UI.tossPick) break;
+          const side = el.dataset.opt, sc = ts.closest('.modal-backdrop'); UI.tossPick = side;
+          ts.querySelectorAll('.toss-item').forEach(i => { i.querySelector('.ti-coin').innerHTML = tossCoin(i.dataset.opt === side); i.classList.remove('hold'); i.classList.add('grab'); });
+          ts.querySelector('.toss-hint').innerHTML = `Sesterce caché dans ${TH() ? 'la Poké Ball' : 'le poing'} ${side === 'left' ? 'de gauche' : 'de droite'}… chut !`;
+          if (root.LudusSfx) { root.LudusSfx.play('card', 0.25, 0.9); root.LudusSfx.play('card', 0.55, 0.9); }
+          setTimeout(() => { answerOpt(side); sc.classList.add('leaving'); setTimeout(() => { closeModal(sc); UI.tossPick = null; }, 400); }, 1500);
+          break;
+        }
         if (ts) {           // tirage du premier laniste : le poing / la Poké Ball choisi(e) se met en avant
           if (ts.querySelector('.toss-stage.shuffling') || UI.tossPick) break;
           UI.tossPick = el.dataset.opt; el.classList.add('chosen'); ts.querySelector('.toss-stage').classList.add('picked');

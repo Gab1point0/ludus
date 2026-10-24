@@ -68,7 +68,7 @@
     // ---------- annuler le coup précédent ----------
     lastOwnIndex(seat) {
       const h = this.game.history;
-      for (let i = h.length - 1; i >= 0; i--) if (h[i].seat === seat && h[i].kind !== 'ack' && h[i].mode !== 'toss') return i;
+      for (let i = h.length - 1; i >= 0; i--) if (h[i].seat === seat && h[i].kind !== 'ack' && h[i].mode !== 'toss' && h[i].mode !== 'tosshide') return i;
       return -1;
     }
     canUndo(seat) { return !this.gameCfg.tutorial && !this.finished && !this.game.s.over && !this.undoReq && this.lastOwnIndex(seat) >= 0; }

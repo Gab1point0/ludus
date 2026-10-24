@@ -288,12 +288,17 @@
 
     async coinToss(initial) {
       const s = this.s;
-      const hider = initial ? 1 : s.firstSeat, chooser = 1 - hider;
+      const isAI = x => !!(this.ctrl[x] && this.ctrl[x].ai);
+      // entre deux joueurs humains (en ligne, ou à deux sur le même écran) : l'un des deux est désigné au hasard pour cacher le sesterce ; contre l'ordinateur, c'est lui qui cache
+      let hider = initial ? 1 : s.firstSeat;
+      if (initial && !isAI(0) && !isAI(1)) hider = this.randInt(2);
+      const chooser = 1 - hider;
       this.say(`${this.name(hider)} cache le sesterce dans un poing et un denier dans l'autre.`);
-      const pick = await this.askChoice(chooser, 'Choisissez un poing', [
-        { id: 'left', label: '🤜 Poing gauche' }, { id: 'right', label: '🤛 Poing droit' }], { mode: 'toss', text: `${this.name(hider)} cache le sesterce dans un poing et un denier dans l'autre.` });
-      const sesterceLeft = this.rand() < 0.5;
-      const gotSesterce = (this.cfg.tutorial && initial) ? true : (pick === 'left') === sesterceLeft;     // tutoriel : le joueur gagne toujours le tirage initial (pour apprendre le double achat)
+      const SIDES = [{ id: 'left', label: '🤜 Poing gauche' }, { id: 'right', label: '🤛 Poing droit' }];
+      // 1) celui qui cache choisit en secret la main qui tient le sesterce ; 2) l'autre choisit une main : s'il tombe sur la même, il gagne le sesterce
+      const hidden = await this.askChoice(hider, 'Cachez le sesterce : choisissez en secret où.', SIDES, { mode: 'tosshide', text: `Vous cachez le sesterce (et ${this.name(chooser)} cherchera où il est).` });
+      const pick = await this.askChoice(chooser, 'Devinez où se cache le sesterce.', SIDES, { mode: 'toss', hiderHuman: !isAI(hider), text: `${this.name(hider)} cache le sesterce dans un poing et un denier dans l'autre.` });
+      const gotSesterce = (this.cfg.tutorial && initial) ? true : pick === hidden;     // tutoriel : le joueur gagne toujours le tirage initial (pour apprendre le double achat)
       const holder = gotSesterce ? chooser : hider;
       s.toss = { hider, chooser, pick, holder };
       s.firstSeat = holder;
