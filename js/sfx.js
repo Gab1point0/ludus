@@ -1,4 +1,4 @@
-/* LUDUS — sons synthétisés (Web Audio) : cors romains, tambours de guerre, entrechoquement d'épées, foule de l'arène…
+/* LUDUS — sons synthétisés (Web Audio) : cors romains, tambours de guerre, entrechoquement d'épées, foule de l'arène, petite musique de Poké-Ludus…
    Aucun fichier audio : tout est calculé par le navigateur. */
 (function (root) {
   'use strict';
@@ -193,22 +193,17 @@
   // ---------- ambiance de l'arène (foule lointaine, très discrète) ----------
   function startAmbient() {
     if (S.ambNodes || !S.enabled || !S.ambient) return;
-    const c = ensure(); if (!c) return;
-    const src = c.createBufferSource(); src.buffer = getNoise(c); src.loop = true;
-    const bp = c.createBiquadFilter(); bp.type = 'bandpass'; bp.frequency.value = 520; bp.Q.value = 0.45;
-    const lp = c.createBiquadFilter(); lp.type = 'lowpass'; lp.frequency.value = 1400;
-    const level = c.createGain(); level.gain.value = 0.03;
-    const lfo = c.createOscillator(); lfo.frequency.value = 0.13; const lg = c.createGain(); lg.gain.value = 0.012; lfo.connect(lg); lg.connect(level.gain);
-    const gain = c.createGain(); gain.gain.value = 1;
-    src.connect(bp); bp.connect(lp); lp.connect(level); level.connect(gain); gain.connect(S.master);
-    src.start(); lfo.start();
-    const timer = setInterval(() => { if (S.enabled && S.ambient && c.state === 'running') V.crowd(c, gain, c.currentTime + 0.05, 0.22, 2.6); }, 17000 + Math.random() * 9000);
-    S.ambNodes = { src, lfo, gain, timer };
+    const c = ensure(); if (!c || !root.LudusAmbience) return;
+    const gain = c.createGain(); gain.gain.value = 1; gain.connect(S.master);
+    const kind = root.LudusTheme && root.LudusTheme.active ? 'poke' : 'arena';       // Poké-Ludus : petite musique ; LUDUS : foule de l'arène
+    let inst = null;
+    try { inst = root.LudusAmbience.start(c, gain, kind); } catch (e) { console.warn('ambiance', e); }
+    S.ambNodes = { gain, inst, kind };
   }
   function stopAmbient() {
     const a = S.ambNodes; if (!a) return;
-    clearInterval(a.timer);
-    try { a.src.stop(); a.lfo.stop(); } catch (e) { /* ignore */ }
+    try { if (a.inst) a.inst.stop(); } catch (e) { /* ignore */ }
+    setTimeout(() => { try { a.gain.disconnect(); } catch (e) { /* ignore */ } }, 900);
     S.ambNodes = null;
   }
 
