@@ -1,7 +1,7 @@
-/* LUDUS — ambiances sonores de fond, entièrement synthétisées (Web Audio, aucun fichier audio).
-   • 'arena' (LUDUS) : une vraie foule — une dizaine de « bavards » (voix synthétiques à formants : voyelles, syllabes, intonations de phrases),
-     une salle qui résonne, et des réactions de temps en temps (« oooh », applaudissements, acclamations).
-   • 'poke' (Poké-Ludus) : une petite musique d'aventure façon console 8 bits (ondes carrées, basse triangle, batterie), composée pour le jeu. */
+/* LUDUS — ambiances sonores de fond.
+   • LUDUS : une musique épique de gladiateurs (morceau créé avec Gemini, assets/audio/gladiateurs.mp3, lu en boucle avec fondu enchaîné) ;
+     si le fichier est introuvable, une version synthétisée équivalente prend le relais (cordes, cuivres, tambours de guerre, lyre).
+   • Poké-Ludus : une petite musique d aventure façon console 8 bits, synthétisée par le navigateur (composition originale). */
 (function (root) {
   'use strict';
   const rnd = (a, b) => a + Math.random() * (b - a);
@@ -15,112 +15,124 @@
   }
 
   // =====================================================================================================================
-  //  FOULE
+  //  MUSIQUE « GLADIATEUR » (LUDUS) — composition originale, ré mineur, 84 BPM, boucle de 16 mesures :
+  //  cordes graves, violoncelles, cuivres héroïques, tambours de guerre, lyre qui égrène des arpèges dans la seconde moitié
   // =====================================================================================================================
-  // voyelles : formants F1, F2, F3 (Hz) — voix d'homme ; les voix de femme sont décalées vers le haut
-  const VOWELS = { a: [780, 1200, 2500], e: [430, 2000, 2650], i: [300, 2300, 3000], o: [500, 900, 2400], u: [350, 800, 2300], an: [650, 1050, 2450], eu: [450, 1450, 2400] };
-  const VOW_LIST = Object.keys(VOWELS);
+  const CHORDS = {
+    Dm: { root: 38, pad: [57, 62, 65], arp: [62, 65, 69, 74] },
+    Bb: { root: 34, pad: [53, 58, 62], arp: [58, 62, 65, 70] },
+    Gm: { root: 43 - 12, pad: [55, 58, 62], arp: [55, 58, 62, 67] },
+    A: { root: 33, pad: [57, 61, 64], arp: [57, 61, 64, 69] },
+    F: { root: 29, pad: [53, 57, 60], arp: [57, 60, 65, 69] },
+    C: { root: 36, pad: [55, 60, 64], arp: [55, 60, 64, 67] },
+  };
+  const EPROG = ['Dm', 'Bb', 'Gm', 'A', 'Dm', 'F', 'C', 'A', 'Dm', 'Bb', 'Gm', 'A', 'Dm', 'F', 'C', 'A'];
+  // thème des cuivres : [temps, note MIDI, durée en temps] ; 8 mesures, rejouées une octave plus haut dans la seconde moitié
+  const THEME = [
+    [[0, 69, 2], [2, 74, 1.5], [3.5, 72, 0.5]], [[0, 70, 2], [2, 74, 2]], [[0, 70, 1.5], [1.5, 69, 0.5], [2, 67, 2]], [[0, 69, 1], [1, 73, 1], [2, 76, 2]],
+    [[0, 77, 2], [2, 76, 1], [3, 74, 1]], [[0, 72, 1.5], [1.5, 74, 0.5], [2, 77, 2]], [[0, 76, 2], [2, 72, 1], [3, 67, 1]], [[0, 76, 1.5], [1.5, 73, 0.5], [2, 69, 2]],
+  ];
 
-  function makeSpeaker(c, bus, noise, o) {
-    o = o || {};
-    const female = o.female != null ? o.female : Math.random() < 0.38;
-    const sp = { female, f0: o.f0 || (female ? rnd(175, 255) : rnd(95, 150)), t: c.currentTime + rnd(0, 2.5), loud: o.loud || rnd(0.35, 1), scale: female ? rnd(1.12, 1.2) : rnd(0.95, 1.05), nodes: [] };
-    const osc = c.createOscillator(); osc.type = 'sawtooth'; osc.frequency.value = sp.f0;
-    const vib = c.createOscillator(); vib.frequency.value = rnd(4.5, 6); const vg = c.createGain(); vg.gain.value = sp.f0 * 0.012; vib.connect(vg); vg.connect(osc.frequency);
-    const env = c.createGain(); env.gain.value = 0.0001;
-    sp.bp = [0, 1, 2].map(i => {
-      const f = c.createBiquadFilter(); f.type = 'bandpass'; f.Q.value = [7, 9, 11][i]; f.frequency.value = VOWELS.a[i];
-      const g = c.createGain(); g.gain.value = [1, 0.7, 0.4][i] * [1.1, 1.3, 1.6][i];
-      osc.connect(f); f.connect(g); g.connect(env); return f;
-    });
-    // consonnes (souffle bref)
-    const ns = c.createBufferSource(); ns.buffer = noise; ns.loop = true;
-    const nf = c.createBiquadFilter(); nf.type = 'bandpass'; nf.frequency.value = rnd(2800, 5200); nf.Q.value = 1.2;
-    const ng = c.createGain(); ng.gain.value = 0; ns.connect(nf); nf.connect(ng); ng.connect(env);
-    const lp = c.createBiquadFilter(); lp.type = 'lowpass'; lp.frequency.value = rnd(1700, 3400); lp.Q.value = 0.5;
-    const pan = c.createStereoPanner ? c.createStereoPanner() : null; if (pan) pan.pan.value = rnd(-0.85, 0.85);
-    env.connect(lp); if (pan) { lp.connect(pan); pan.connect(bus); } else lp.connect(bus);
-    osc.start(); vib.start(); ns.start(0, Math.random() * 1.5);
-    sp.osc = osc; sp.env = env; sp.ng = ng;
-    sp.nodes = [osc, vib, ns];
-    sp.stop = () => { try { osc.stop(); vib.stop(); ns.stop(); } catch (e) { /* ignore */ } };
-    return sp;
-  }
-  // une phrase : quelques syllabes avec une intonation descendante
-  function phrase(sp, t, strength) {
-    const n = 3 + Math.floor(Math.random() * 5);
-    let f = sp.f0 * rnd(1.0, 1.22), vow = pick(VOW_LIST);
-    const peak = 0.12 * sp.loud * (strength || 1);
-    for (let i = 0; i < n; i++) {
-      const dur = rnd(0.11, 0.21), v = Math.random() < 0.35 ? vow : pick(VOW_LIST); vow = v;
-      const F = VOWELS[v];
-      sp.osc.frequency.setTargetAtTime(f, t, 0.03);
-      sp.bp.forEach((b, k) => b.frequency.setTargetAtTime(F[k] * sp.scale * rnd(0.97, 1.03), t, 0.02));
-      sp.env.gain.setTargetAtTime(peak * rnd(0.6, 1), t, 0.014);
-      sp.env.gain.setTargetAtTime(0.0001, t + dur * 0.72, 0.03);
-      if (Math.random() < 0.5) { sp.ng.gain.setValueAtTime(peak * 1.4, t); sp.ng.gain.setTargetAtTime(0, t + 0.012, 0.012); }
-      t += dur + rnd(0.02, 0.075);
-      f *= rnd(0.93, 1.04) * (i > n - 3 ? 0.93 : 1);
+  function epic(c, out) {
+    const BEAT = 60 / 84, BAR = BEAT * 4;
+    const bus = c.createGain(); bus.gain.value = 0.62; bus.connect(out);
+    // salle de pierre : réverbération
+    const conv = c.createConvolver(), len = Math.floor(c.sampleRate * 2.4), imp = c.createBuffer(2, len, c.sampleRate);
+    for (let ch = 0; ch < 2; ch++) { const d = imp.getChannelData(ch); for (let i = 0; i < len; i++) d[i] = (Math.random() * 2 - 1) * Math.pow(1 - i / len, 2.2); }
+    conv.buffer = imp; const wet = c.createGain(); wet.gain.value = 0.42; conv.connect(wet); wet.connect(bus);
+    const dry = c.createGain(); dry.gain.value = 0.85; dry.connect(bus);
+    const hall = c.createGain(); hall.gain.value = 1; hall.connect(dry); hall.connect(conv);
+    const noise = noiseBuf(c, 1.5);
+
+    function saws(f, t, dur, vol, dest, o) {
+      o = o || {};
+      const lp = c.createBiquadFilter(); lp.type = 'lowpass'; lp.Q.value = o.q || 1.2;
+      lp.frequency.setValueAtTime(o.f0 || 700, t);
+      if (o.f1) { lp.frequency.exponentialRampToValueAtTime(o.f1, t + (o.rise || 0.1)); lp.frequency.exponentialRampToValueAtTime(o.f2 || o.f1 * 0.6, t + dur); }
+      const g = c.createGain(), a = o.attack || 0.05, r = o.release || 0.12;
+      g.gain.setValueAtTime(0.0001, t); g.gain.linearRampToValueAtTime(vol, t + a); g.gain.setValueAtTime(vol, t + Math.max(a + 0.01, dur - r)); g.gain.linearRampToValueAtTime(0.0001, t + dur + r * 0.5);
+      (o.detune || [-7, 7]).forEach(dt => { const s = c.createOscillator(); s.type = 'sawtooth'; s.frequency.value = f; s.detune.value = dt; s.connect(lp); s.start(t); s.stop(t + dur + r); });
+      lp.connect(g); g.connect(dest);
     }
-    return t;
-  }
-
-  function crowd(c, out) {
-    const bus = c.createGain(); bus.gain.value = 1;
-    // salle : écho diffus
-    const conv = c.createConvolver(), len = Math.floor(c.sampleRate * 1.8), imp = c.createBuffer(2, len, c.sampleRate);
-    for (let ch = 0; ch < 2; ch++) { const d = imp.getChannelData(ch); for (let i = 0; i < len; i++) d[i] = (Math.random() * 2 - 1) * Math.pow(1 - i / len, 2.6); }
-    conv.buffer = imp;
-    const wet = c.createGain(); wet.gain.value = 0.55; const dry = c.createGain(); dry.gain.value = 0.9;
-    bus.connect(dry); dry.connect(out); bus.connect(conv); conv.connect(wet); wet.connect(out);
-    const noise = noiseBuf(c, 3);
-    // un fond très léger (jamais de « vague » : pas de modulation lente)
-    const bed = c.createBufferSource(); bed.buffer = noise; bed.loop = true;
-    const bf = c.createBiquadFilter(); bf.type = 'bandpass'; bf.frequency.value = 900; bf.Q.value = 0.35; const bg = c.createGain(); bg.gain.value = 0.004;
-    bed.connect(bf); bf.connect(bg); bg.connect(bus); bed.start(0, 0.4);
-    const speakers = []; for (let i = 0; i < 11; i++) speakers.push(makeSpeaker(c, bus, noise));
-    const alive = { v: true }, timers = [];
+    const brass = (m, t, dur, vol) => saws(mtof(m), t, dur, vol, hall, { f0: 420, f1: 2600, f2: 1100, rise: 0.11, attack: 0.045, release: 0.14, q: 2 });
+    const strings = (m, t, dur, vol) => saws(mtof(m), t, dur, vol, hall, { f0: 900, attack: 0.5, release: 0.6, detune: [-10, 0, 10], q: 0.6 });
+    const cello = (m, t, dur, vol) => saws(mtof(m), t, dur, vol, dry, { f0: 380, f1: 520, f2: 360, rise: 0.2, attack: 0.08, release: 0.2, detune: [-4, 4], q: 0.9 });
+    function lyre(m, t, vol) {
+      const o = c.createOscillator(); o.type = 'triangle'; o.frequency.value = mtof(m);
+      const o2 = c.createOscillator(); o2.type = 'sine'; o2.frequency.value = mtof(m) * 2;
+      const g = c.createGain(); g.gain.setValueAtTime(0.0001, t); g.gain.linearRampToValueAtTime(vol, t + 0.004); g.gain.exponentialRampToValueAtTime(0.0001, t + 0.9);
+      const g2 = c.createGain(); g2.gain.value = 0.25; o.connect(g); o2.connect(g2); g2.connect(g); g.connect(hall); o.start(t); o2.start(t); o.stop(t + 1); o2.stop(t + 1);
+    }
+    function taiko(t, vol) {
+      const o = c.createOscillator(); o.type = 'sine'; o.frequency.setValueAtTime(115, t); o.frequency.exponentialRampToValueAtTime(42, t + 0.28);
+      const g = c.createGain(); g.gain.setValueAtTime(vol, t); g.gain.exponentialRampToValueAtTime(0.0001, t + 0.55); o.connect(g); g.connect(hall); o.start(t); o.stop(t + 0.6);
+      const s = c.createBufferSource(); s.buffer = noise; const f = c.createBiquadFilter(); f.type = 'lowpass'; f.frequency.value = 700; const ng = c.createGain(); ng.gain.setValueAtTime(vol * 0.5, t); ng.gain.exponentialRampToValueAtTime(0.0001, t + 0.09);
+      s.connect(f); f.connect(ng); ng.connect(hall); s.start(t, Math.random()); s.stop(t + 0.12);
+    }
+    function bar(i, t0) {
+      const name = EPROG[i % 16], ch = CHORDS[name], second = (i % 16) >= 8;
+      // cordes tenues + violoncelle
+      ch.pad.forEach(m => strings(m, t0, BAR * 0.98, second ? 0.016 : 0.012));
+      cello(ch.root + 12, t0, BEAT * 2, 0.07); cello(ch.root + 12, t0 + BEAT * 2, BEAT * 2, 0.06);
+      cello(ch.root, t0, BAR, 0.055);
+      // thème aux cuivres (seconde moitié : une octave plus haut, plus fort)
+      THEME[i % 8].forEach(([b, m, l]) => brass(m + (second ? 12 : 0), t0 + b * BEAT, l * BEAT * 0.96, second ? 0.05 : 0.042));
+      // tambours de guerre : coup profond au 1, plus léger au 3, roulement avant les mesures 4 et 8
+      taiko(t0, 0.34); taiko(t0 + BEAT * 2, 0.2);
+      if (i % 4 === 3) { taiko(t0 + BEAT * 3, 0.12); taiko(t0 + BEAT * 3.33, 0.16); taiko(t0 + BEAT * 3.67, 0.22); } else taiko(t0 + BEAT * 3.5, 0.08);
+      // lyre dans la seconde moitié
+      if (second) ch.arp.forEach((m, k) => { lyre(m + 12, t0 + BEAT * (0.5 * k), 0.034); lyre(m + 12, t0 + BEAT * (2 + 0.5 * k), 0.03); });
+    }
+    let nextBar = 0, nextT = c.currentTime + 0.2;
+    const alive = { v: true };
     const tick = () => {
-      if (!alive.v || c.state !== 'running') return;
-      const now = c.currentTime;
-      for (const sp of speakers) { let guard = 0; while (sp.t < now + 1.2 && guard++ < 4) { const end = phrase(sp, Math.max(sp.t, now + 0.05), 1); sp.t = end + rnd(0.5, 3.4); } }
+      if (!alive.v) return; if (c.state !== 'running') { nextT = Math.max(nextT, c.currentTime + 0.2); return; }
+      while (nextT < c.currentTime + 1.0) { bar(nextBar, nextT); nextBar = (nextBar + 1) % 16; nextT += BAR; }
     };
-    const iv = setInterval(tick, 350); tick();
-
-    // réactions de la foule
-    function burst(kind) {
-      const t0 = c.currentTime + 0.1, tmp = [];
-      if (kind === 'applause') {
-        const ns = c.createBufferSource(); ns.buffer = noise; ns.loop = true; const f = c.createBiquadFilter(); f.type = 'bandpass'; f.frequency.value = 3300; f.Q.value = 0.9;
-        const g = c.createGain(); g.gain.value = 0; ns.connect(f); f.connect(g); g.connect(bus); ns.start(t0, Math.random());
-        const dur = rnd(1.8, 3.2);
-        for (let i = 0; i < 120; i++) { const u = Math.random(), t = t0 + dur * (u * u * (3 - 2 * u)); g.gain.setValueAtTime(rnd(0.03, 0.1), t); g.gain.setTargetAtTime(0, t + 0.003, 0.007); }
-        ns.stop(t0 + dur + 0.5); return;
-      }
-      const n = kind === 'cheer' ? 12 : 9;
-      for (let i = 0; i < n; i++) tmp.push(makeSpeaker(c, bus, noise, { loud: rnd(0.8, 1.2), f0: (Math.random() < 0.4 ? rnd(190, 260) : rnd(105, 165)) * (kind === 'cheer' ? 1.15 : 1) }));
-      const dur = kind === 'cheer' ? rnd(1.3, 1.9) : rnd(1.5, 2.2);
-      tmp.forEach(sp => {
-        const t = t0 + rnd(0, 0.35), F = kind === 'cheer' ? VOWELS.a : VOWELS.o, F2 = kind === 'cheer' ? VOWELS.e : VOWELS.an;
-        sp.bp.forEach((b, k) => { b.frequency.setValueAtTime(F[k] * sp.scale, t); b.frequency.linearRampToValueAtTime(F2[k] * sp.scale, t + dur); });
-        sp.osc.frequency.setValueAtTime(sp.f0, t); sp.osc.frequency.linearRampToValueAtTime(sp.f0 * (kind === 'cheer' ? 1.25 : 1.12), t + dur * 0.7);
-        sp.env.gain.setValueAtTime(0.0001, t); sp.env.gain.linearRampToValueAtTime(0.11 * sp.loud, t + dur * 0.35); sp.env.gain.setTargetAtTime(0.0001, t + dur * 0.55, dur * 0.22);
-        sp.ng.gain.setValueAtTime(0, t); sp.ng.gain.linearRampToValueAtTime(0.05, t + dur * 0.35); sp.ng.gain.setTargetAtTime(0, t + dur * 0.55, dur * 0.2);
-        setTimeout(() => sp.stop(), (dur + 2) * 1000);
-      });
-    }
-    function nextEvent() {
-      if (!alive.v) return;
-      if (c.state === 'running') { const r = Math.random(); burst(r < 0.5 ? 'ooh' : r < 0.78 ? 'applause' : 'cheer'); }
-      timers.push(setTimeout(nextEvent, rnd(11000, 24000)));
-    }
-    timers.push(setTimeout(nextEvent, rnd(5000, 9000)));
+    const iv = setInterval(tick, 150); tick();
     return {
-      gain: bus, burst,
-      prime(sec) { for (const sp of speakers) { let g = 0; while (sp.t < sec && g++ < 200) { const end = phrase(sp, Math.max(sp.t, 0.05), 1); sp.t = end + rnd(0.5, 3.4); } } },      // (tests hors ligne)
-      stop() { alive.v = false; clearInterval(iv); timers.forEach(clearTimeout); speakers.forEach(s => s.stop()); try { bed.stop(); } catch (e) { /* ignore */ } try { bus.disconnect(); } catch (e) { /* ignore */ } },
+      gain: bus,
+      prime(sec) { while (nextT < sec) { bar(nextBar, nextT); nextBar = (nextBar + 1) % 16; nextT += BAR; } },
+      stop() { alive.v = false; clearInterval(iv); const t = c.currentTime; try { bus.gain.cancelScheduledValues(t); bus.gain.setTargetAtTime(0.0001, t, 0.1); } catch (e) { /* ignore */ } setTimeout(() => { try { bus.disconnect(); } catch (e) { /* ignore */ } }, 900); },
     };
   }
+
+
+  // =====================================================================================================================
+  //  LECTEUR du morceau « gladiateurs » (créé avec Gemini, assets/audio/gladiateurs.mp3) : boucle en fondu enchaîné.
+  //  Si le fichier ne peut pas être chargé (ouverture hors ligne, etc.), on joue la version synthétisée ci-dessus.
+  // =====================================================================================================================
+  function filePlayer(c, out, url, fallback) {
+    const bus = c.createGain(); bus.gain.value = 0.17; bus.connect(out);
+    const XF = 3;               // durée du fondu enchaîné entre deux passages (s)
+    const alive = { v: true }; let buf = null, timer = null, nextAt = 0, fb = null; const live = new Set();
+    function playAt(t) {
+      const s = c.createBufferSource(); s.buffer = buf; const g = c.createGain();
+      g.gain.setValueAtTime(0.0001, t); g.gain.linearRampToValueAtTime(1, t + XF * 0.5);
+      g.gain.setValueAtTime(1, t + buf.duration - XF); g.gain.linearRampToValueAtTime(0.0001, t + buf.duration);
+      s.connect(g); g.connect(bus); s.start(t); s.stop(t + buf.duration + 0.05); live.add(s); s.onended = () => live.delete(s);
+      nextAt = t + buf.duration - XF;
+    }
+    function tick() {
+      if (!alive.v || !buf) return;
+      if (c.state !== 'running') { return; }
+      while (nextAt < c.currentTime + 4) playAt(Math.max(nextAt, c.currentTime + 0.05));
+    }
+    fetch(url).then(r => { if (!r.ok) throw new Error('http ' + r.status); return r.arrayBuffer(); })
+      .then(a => new Promise((ok, ko) => c.decodeAudioData(a, ok, ko)))
+      .then(b => { if (!alive.v) return; buf = b; nextAt = c.currentTime + 0.1; timer = setInterval(tick, 500); tick(); })
+      .catch(() => { if (alive.v && fallback) fb = fallback(c, out); });
+    return {
+      gain: bus,
+      prime(sec) { if (buf) { while (nextAt < sec) playAt(nextAt); } },
+      stop() {
+        alive.v = false; clearInterval(timer); if (fb) fb.stop();
+        const t = c.currentTime; try { bus.gain.cancelScheduledValues(t); bus.gain.setTargetAtTime(0.0001, t, 0.12); } catch (e) { /* ignore */ }
+        setTimeout(() => { live.forEach(s => { try { s.stop(); } catch (e) { /* ignore */ } }); try { bus.disconnect(); } catch (e) { /* ignore */ } }, 900);
+      },
+    };
+  }
+
 
   // =====================================================================================================================
   //  MUSIQUE « AVENTURE » (Poké-Ludus) — composition originale, 138 BPM, do majeur, boucle de 16 mesures
@@ -187,6 +199,6 @@
     return { gain: bus, loop: LOOP, prime(sec) { while (nextT < sec) { bar(nextBar, nextT); nextBar = (nextBar + 1) % 16; nextT += BAR; } }, stop() { alive.v = false; clearInterval(iv); const t = c.currentTime; try { bus.gain.cancelScheduledValues(t); bus.gain.setTargetAtTime(0.0001, t, 0.08); } catch (e) { /* ignore */ } setTimeout(() => { try { bus.disconnect(); } catch (e) { /* ignore */ } }, 700); } };
   }
 
-  function start(c, out, kind) { return kind === 'poke' ? music(c, out) : crowd(c, out); }
-  root.LudusAmbience = { start, VOWELS, MELODY, PROG };
+  function start(c, out, kind) { return kind === 'poke' ? music(c, out) : filePlayer(c, out, 'assets/audio/gladiateurs.mp3?v=1', epic); }
+  root.LudusAmbience = { start, epic, music, MELODY, PROG, THEME };
 })(typeof window !== 'undefined' ? window : globalThis);
