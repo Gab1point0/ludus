@@ -22,7 +22,7 @@
   // ============================== petites briques HTML ==============================
   const TH = () => (root.LudusTheme && root.LudusTheme.active ? root.LudusTheme : null);
   // visuel d'une carte : image du PDF (LUDUS) ou carte dessinée en HTML (autres thèmes)
-  function faceImg(defId, big) { const t = TH(); if (t) return t.face(defId); const d = CARDS[defId]; return `<img src="assets/cards/${d.img}${big ? '' : '-sm'}.webp" alt="${esc(d.name)}" draggable="false">`; }
+  function faceImg(defId, big) { const t = TH(); if (t) return t.face(defId); const d = CARDS[defId]; return `<img src="assets/cards/${d.img}${big ? '' : '-sm'}.webp${d.img === 'summa-rudis' ? '?v=2' : ''}" alt="${esc(d.name)}" draggable="false">`; }
   function edictImg(id, big) { const t = TH(); if (t) return t.edictFace(id); return `<img src="assets/edicts/${id}${big ? '' : '-sm'}.webp" alt="" draggable="false">`; }
   function backImg(kind) { const t = TH(); if (t) return t.backFace(kind); return `<img src="assets/backs/${kind}.webp" alt="Dos de carte" draggable="false">`; }
   const brand = () => (root.LudusTheme ? root.LudusTheme.brand : 'LUDUS');
