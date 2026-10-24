@@ -394,3 +394,63 @@ body.anim-none *, body.anim-none *::before, body.anim-none *::after { animation-
   #coach .co-head::after { content: '▾'; color: var(--muted); }
   #coach.min .co-l, #coach.min .co-next { display: none; }
 }
+
+/* ---------- tirage du premier laniste : poings (LUDUS) / Poké Balls (Poké-Ludus) ---------- */
+.modal.toss-scene { background: radial-gradient(ellipse at 50% 20%, #54402b, #251a12 75%); text-align: center; padding: 22px 34px 20px; min-width: min(94vw, 680px); overflow: hidden; }
+.modal-backdrop.leaving { animation: tossOut .4s ease-in forwards; }
+@keyframes tossOut { to { opacity: 0; } }
+.toss h2 { margin: 0 0 4px; font: 800 28px var(--serif); color: var(--gold); }
+.toss-txt { margin: 0 0 6px; color: #eadcc2; font-size: 15px; }
+.toss-stage { --d: 270px; position: relative; display: flex; justify-content: center; gap: 100px; height: 280px; margin: 40px 0 2px; align-items: flex-start; }
+.toss-item { position: relative; width: 170px; padding: 6px 0 0; background: none; border: 0; cursor: default; display: flex; flex-direction: column; align-items: center; font: inherit; color: #fff; animation: tossIn .75s cubic-bezier(.2, 1.3, .4, 1) both; }
+.toss-item.right { animation-delay: .14s; }
+@keyframes tossIn { from { opacity: 0; transform: translateY(-120px) scale(.7); } to { opacity: 1; transform: none; } }
+.ti-in { position: relative; display: flex; flex-direction: column; align-items: center; width: 100%; }
+.ti-body { display: block; width: 150px; height: 150px; line-height: 150px; font-size: 128px; transition: transform .25s cubic-bezier(.2, 1.5, .4, 1), filter .25s; filter: drop-shadow(0 10px 7px rgba(0, 0, 0, .55)); }
+.ti-body .tfist { display: block; filter: sepia(.3) saturate(1.2); }
+.ti-body .tball { width: 130px; height: 130px; margin-top: 10px; }
+.ti-lab { margin-top: 6px; font: 700 15px var(--sans); color: #eadcc2; opacity: .9; }
+.tb-top { transform-box: fill-box; transform-origin: 8% 100%; transition: transform .5s cubic-bezier(.3, 1.4, .5, 1); }
+/* mélange : les deux se croisent en arc, quatre fois (retour à la place de départ) */
+
+
+@keyframes swapL { 0% { transform: translate(0, 0); } 50% { transform: translate(calc(var(--d) / 2), -70px) rotate(8deg); } 100% { transform: translate(var(--d), 0); } }
+@keyframes swapR { 0% { transform: translate(0, 0); } 50% { transform: translate(calc(var(--d) / -2), 55px) rotate(-8deg); } 100% { transform: translate(calc(var(--d) * -1), 0); } }
+.toss-stage.ready .toss-item { cursor: pointer; }
+.toss-stage.ready .toss-item .ti-body { animation: tossBob 1.5s ease-in-out infinite; }
+.toss-stage.ready .toss-item.right .ti-body { animation-delay: -.75s; }
+@keyframes tossBob { 50% { transform: translateY(-9px) rotate(2deg); } }
+.toss-stage.ready .toss-item:hover .ti-body { animation: none; transform: scale(1.2) rotate(-4deg); filter: drop-shadow(0 0 16px rgba(255, 214, 90, .95)) drop-shadow(0 10px 7px rgba(0, 0, 0, .5)); }
+.toss-stage.shuffling .toss-item, .toss-stage.picked .toss-item { pointer-events: none; }
+.toss-stage.picked .toss-item:not(.chosen) { opacity: .45; transition: opacity .4s; }
+.toss-stage.picked .toss-item.chosen .ti-body { animation: tossShake .22s ease-in-out 4; transform: scale(1.18); }
+@keyframes tossShake { 0%, 100% { transform: scale(1.18) rotate(0); } 25% { transform: scale(1.18) rotate(-9deg); } 75% { transform: scale(1.18) rotate(9deg); } }
+.ti-coin { position: absolute; left: 50%; top: 8px; width: 110px; margin-left: -55px; display: flex; flex-direction: column; align-items: center; gap: 2px; opacity: 0; transform: scale(0) translateY(30px); transition: opacity .3s, transform .6s cubic-bezier(.2, 1.7, .4, 1); pointer-events: none; z-index: 3; }
+.ti-coin small { font: 800 13px var(--sans); color: #fff; text-shadow: 0 1px 3px #000; }
+.tcoin { display: grid; place-items: center; width: 84px; height: 84px; border-radius: 50%; font: 900 40px var(--serif); border: 4px solid rgba(0, 0, 0, .35); box-shadow: 0 0 26px rgba(255, 226, 122, .7), inset 0 -6px 10px rgba(0, 0, 0, .25); }
+.tcoin.gold { background: radial-gradient(circle at 35% 30%, #fff1a8, #e3b552 55%, #a8741c); color: #7a4c05; }
+.tcoin.bronze { background: radial-gradient(circle at 35% 30%, #f1c9a0, #b9733a 60%, #7d4521); color: #4a2610; box-shadow: 0 0 14px rgba(255, 190, 120, .35), inset 0 -6px 10px rgba(0, 0, 0, .25); }
+.toss-item.open .ti-coin { opacity: 1; transform: none; }
+.toss-item.open .ti-body { transform: translateY(58px) scale(.72); opacity: .18; animation: none; }
+.toss-item.open .tb-top { transform: rotate(-42deg); }
+.toss-hint { margin: 10px 0 0; min-height: 24px; font-size: 16px; color: #ffe9a8; }
+@media (max-width: 640px) { .toss-stage { --d: 190px; gap: 40px; height: 230px; } .toss-item { width: 120px; } .ti-body { width: 110px; height: 110px; line-height: 110px; font-size: 90px; } .ti-body .tball { width: 96px; height: 96px; } .modal.toss-scene { padding: 16px 12px; } }
+
+/* tirage : étapes (v1.12) */
+.toss-stage.shuffling .toss-item.left .ti-in { animation: swapL .4s ease-in-out var(--swaps, 6) alternate both; }
+.toss-stage.shuffling .toss-item.right .ti-in { animation: swapR .4s ease-in-out var(--swaps, 6) alternate both; }
+.ti-coin { top: 0; transition: opacity .35s, transform .6s cubic-bezier(.2, 1.7, .4, 1); }
+/* 1) le sesterce (à gauche) et le denier (à droite) flottent au centre, au-dessus des mains / des Poké Balls */
+.toss-stage.intro .toss-item.left .ti-coin { transform: translate(95px, -34px) scale(.9); }
+.toss-stage.intro .toss-item.right .ti-coin { transform: translate(-95px, -34px) scale(.9); }
+.toss-stage.intro .toss-item.hold .ti-coin { opacity: 1; }
+.toss-stage.intro .toss-item.hold .ti-coin { animation: tossCoinBob 1s ease-in-out infinite; }
+@keyframes tossCoinBob { 50% { margin-top: -8px; } }
+.toss-item.hold .tb-top { transform: rotate(-42deg); }
+/* 2) chaque pièce rejoint sa main / sa Poké Ball ; la Poké Ball se referme */
+.toss-stage.intro .toss-item.grab .ti-coin { opacity: 0; transform: translate(0, 92px) scale(.25); transition: opacity .25s ease-in .45s, transform .65s cubic-bezier(.5, -.2, .7, 1); }
+.toss-item.grab .tb-top { transition: transform .35s cubic-bezier(.3, 1.6, .5, 1) .55s; }
+.toss-item.grab .ti-body { animation: tossSqueeze .5s ease-out .6s; }
+@keyframes tossSqueeze { 0% { transform: scale(1); } 35% { transform: scale(.86, .92); } 70% { transform: scale(1.1, 1.04); } 100% { transform: scale(1); } }
+/* révélation : les pièces restent à leur place habituelle */
+.toss-item.open .ti-coin { animation: none; }

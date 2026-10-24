@@ -466,8 +466,80 @@
   function closeModal(el) { if (el && el.parentNode) el.parentNode.removeChild(el); }
   function closeAll(filter) { $$('#overlay-root .modal-backdrop').forEach(m => { if (!filter || filter(m)) closeModal(m); }); }
 
+  // ---------- tirage du premier laniste : deux poings (ou deux Poké Balls) à choisir, avec animation ----------
+  const TBALL = '<svg class="tball" viewBox="0 0 100 100" aria-hidden="true"><g class="tb-bot"><path d="M5 50 A45 45 0 0 0 95 50 Z" fill="#f6f6f6" stroke="#222" stroke-width="5" stroke-linejoin="round"/></g><g class="tb-top"><path d="M5 50 A45 45 0 0 1 95 50 Z" fill="#e5322d" stroke="#222" stroke-width="5" stroke-linejoin="round"/><path d="M16 38 A38 38 0 0 1 40 17" stroke="#ff958e" stroke-width="5" fill="none" stroke-linecap="round"/></g><rect x="5" y="47" width="90" height="6" fill="#222"/><circle cx="50" cy="50" r="13" fill="#fff" stroke="#222" stroke-width="6"/><circle cx="50" cy="50" r="5" fill="#d9d9d9" stroke="#222" stroke-width="2"/></svg>';
+  const tossCoin = isSes => (isSes ? '<b class="tcoin gold">★</b><small>Sesterce</small>' : '<b class="tcoin bronze">1</b><small>Denier</small>');
+  // NB : l'animation est purement décorative. Le résultat du tirage est tiré au hasard par le moteur (game.rand) APRÈS le choix du joueur :
+  // suivre les mains ou les Poké Balls des yeux ne donne aucun indice (même la pièce saisie par chaque main est tirée au sort à l'écran).
+  function tossItemHTML(side, ball, sesSide) {
+    const lab = ball ? (side === 'left' ? 'Poké Ball de gauche' : 'Poké Ball de droite') : (side === 'left' ? 'Poing gauche' : 'Poing droit');
+    return `<button class="toss-item ${side}" data-act="opt" data-opt="${side}" aria-label="${lab}"><span class="ti-in"><span class="ti-body">${ball ? TBALL : `<span class="tfist">${side === 'left' ? '🤜' : '🤛'}</span>`}</span><span class="ti-coin">${tossCoin(side === sesSide)}</span><span class="ti-lab">${lab}</span></span></button>`;
+  }
+  // déroulé : 1) le sesterce et le denier apparaissent (les Poké Balls s'ouvrent)  2) chaque main / Poké Ball en saisit un  3) on mélange  4) le joueur choisit
+  function openTossScene(v, p) {
+    const ball = !!TH(), hider = esc(v.players[1 - v.seat].name);
+    const last = v.log.length ? v.log[v.log.length - 1].n : 0;
+    UI.tossPick = null; UI.tossLogN = last;
+    const sesSide = Math.random() < 0.5 ? 'left' : 'right', swaps = Math.random() < 0.5 ? 6 : 8;      // mise en scène aléatoire, sans lien avec le vrai résultat
+    const html = `<div class="toss"><h2>Qui commence ?</h2>
+      <p class="toss-txt"><b>${hider}</b> cache le <b>sesterce</b> dans ${ball ? 'une Poké Ball' : 'un poing'} et un <b>denier</b> dans l'autre.</p>
+      <div class="toss-stage intro">${tossItemHTML('left', ball, sesSide)}${tossItemHTML('right', ball, sesSide)}</div>
+      <p class="toss-hint">Voici le <b>sesterce</b> et le <b>denier</b>…</p></div>`;
+    const el = openModal(html, { id: 'toss', closable: false, cls: 'toss-scene' });
+    const S = root.LudusSfx, play = (n, d, vol) => { if (S) S.play(n, d, vol); };
+    const st = el.querySelector('.toss-stage'), h = el.querySelector('.toss-hint'), items = Array.from(el.querySelectorAll('.toss-item'));
+    const at = (ms, f) => setTimeout(() => { if (el.isConnected && !UI.tossPick) f(); }, ms);
+    at(650, () => { items.forEach(i => i.classList.add('hold')); play('ding', 0, 0.7); if (ball) play('tick', 0.1, 0.9); });
+    at(1900, () => {
+      items.forEach(i => { i.classList.remove('hold'); i.classList.add('grab'); });
+      h.innerHTML = ball ? 'Le <b>sesterce</b> entre dans l\'une, le <b>denier</b> dans l\'autre…' : 'Chaque <b>main</b> en saisit un…';
+      play('card', 0.25, 0.9); play('card', 0.55, 0.9);
+    });
+    at(3300, () => {
+      items.forEach(i => { i.querySelector('.ti-coin').innerHTML = ''; });
+      st.classList.remove('intro'); st.classList.add('shuffling'); h.innerHTML = '👀 Suivez bien…';
+      st.style.setProperty('--swaps', swaps);
+      for (let k = 0; k < swaps; k++) play('whoosh', k * 0.4, 0.7);
+    });
+    at(3300 + swaps * 400 + 200, () => {
+      st.classList.remove('shuffling'); st.classList.add('ready');
+      h.innerHTML = ball ? 'Cliquez sur la <b>Poké Ball</b> de votre choix !' : 'Cliquez sur le <b>poing</b> de votre choix !';
+      play('blip', 0, 0.8);
+    });
+  }
+  function revealToss(el, v) {
+    const t = v.toss; if (!t) return;
+    const ball = !!TH(), mine = t.holder === t.chooser, hider = esc(v.players[t.hider].name);
+    const chosen = el.querySelector('.toss-item.chosen') || el.querySelector('.toss-item.' + t.pick), other = el.querySelector('.toss-item:not(.chosen)');
+    const coin = tossCoin;
+    el.querySelectorAll('.toss-item').forEach(i => i.classList.remove('hold', 'grab'));
+    if (chosen) { chosen.querySelector('.ti-coin').innerHTML = coin(mine); setTimeout(() => chosen.classList.add('open'), 350); }
+    if (other) { other.querySelector('.ti-coin').innerHTML = coin(!mine); setTimeout(() => other.classList.add('open'), 1300); }
+    const h = el.querySelector('.toss-hint');
+    setTimeout(() => { if (h) h.innerHTML = mine ? `🎉 Vous avez trouvé le <b>sesterce</b> : vous êtes <b>premier laniste</b> !` : `Ce n'est qu'un <b>denier</b>… <b>${hider}</b> garde le sesterce et sera <b>premier laniste</b>.`; }, 600);
+    const S = root.LudusSfx; if (S) { S.play('drumroll', 0, 0.5); S.play(mine ? 'ding' : 'blip', 0.55, 0.9); if (mine) S.play('cheer', 0.7, 0.6); }
+    setTimeout(() => { el.classList.add('leaving'); setTimeout(() => { closeModal(el); }, 400); }, 3000);
+  }
+  // renvoie true quand la scène du tirage gère l'écran (question en cours, ou révélation du résultat)
+  function tossFlow(v, p) {
+    const ex = $('#overlay-root .modal-backdrop[data-mid="toss"]');
+    if (p && p.kind === 'choice' && p.mode === 'toss') {
+      const old = $('#overlay-root .modal-backdrop[data-mid="prompt"]'); if (old) closeModal(old);
+      if (!ex) openTossScene(v, p);
+      return true;
+    }
+    if (!ex) return false;
+    if (!UI.tossPick) { closeModal(ex); return false; }
+    if (!ex.dataset.revealed) {
+      const fresh = (v.log || []).some(l => l.n > UI.tossLogN && /choisit le poing/.test(l.text));
+      if (v.toss && fresh) { ex.dataset.revealed = '1'; revealToss(ex, v); }
+    }
+    return false;
+  }
+
   // ---------- fenêtre liée à une question du moteur ----------
   function renderPromptModal(v, p) {
+    if (tossFlow(v, p)) return;
     const existing = $('#overlay-root .modal-backdrop[data-mid="prompt"]');
     const needs = p && (p.kind === 'cards' || p.kind === 'number' || (p.kind === 'ack' && (p.mode === 'edict' || p.mode === 'recap')) || (p.kind === 'choice' && !['prep', 'place'].includes(p.mode)));
     const DOCK = ['zone', 'slot', 'seat', 'order'];
@@ -716,7 +788,16 @@
         } else answerOpt(el.dataset.opt);
         break;
       }
-      case 'opt': answerOpt(el.dataset.opt); break;
+      case 'opt': {
+        const ts = el.closest('.toss-scene');
+        if (ts) {           // tirage du premier laniste : le poing / la Poké Ball choisi(e) se met en avant
+          if (ts.querySelector('.toss-stage.shuffling') || UI.tossPick) break;
+          UI.tossPick = el.dataset.opt; el.classList.add('chosen'); ts.querySelector('.toss-stage').classList.add('picked');
+          ts.querySelector('.toss-hint').innerHTML = '…';
+          if (root.LudusSfx) root.LudusSfx.play('drum', 0, 0.8);
+        }
+        answerOpt(el.dataset.opt); break;
+      }
       case 'hand': {
         if (!p || p.kind !== 'choice') break;
         const uid = el.dataset.uid;
@@ -788,7 +869,7 @@
     document.addEventListener('keydown', e => {
       if (e.key !== 'Escape') return;
       const d = $('#logdrawer'); if (d.classList.contains('open')) { d.classList.remove('open'); return; }
-      const ms = $$('#overlay-root .modal-backdrop').filter(m => !['prompt', 'end', 'lost'].includes(m.dataset.mid));
+      const ms = $$('#overlay-root .modal-backdrop').filter(m => !['prompt', 'toss', 'end', 'lost'].includes(m.dataset.mid));
       if (ms.length) closeModal(ms[ms.length - 1]);
     });
     // glisser-déposer d'une tactique de la main vers un emplacement

@@ -299,7 +299,9 @@
       s.firstSeat = holder;
       this.say(`${this.name(chooser)} choisit le poing ${pick === 'left' ? 'gauche' : 'droit'} : ${gotSesterce ? 'le sesterce !' : 'le denier.'} ${this.name(holder)} est le premier laniste.`);
       if (initial) this.gain(1 - holder, 1, 'Avantage du second laniste', { noLedger: true });
-      await this.beat(900);
+      // un joueur humain voit la révélation animée (poing / Poké Ball qui s'ouvre) : on lui laisse le temps de la voir
+      const human = !(this.ctrl[chooser] && this.ctrl[chooser].ai);
+      await this.beat(human ? 3500 * (this.cfg.speed || 0) : 900);
     }
 
     // =====================================================================================
